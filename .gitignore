@@ -10,3 +10,4 @@ coverage/
 *.sqlite-*
 .DS_Store
 DS_Store
+凭据.md
