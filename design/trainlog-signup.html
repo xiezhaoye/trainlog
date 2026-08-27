@@ -46,11 +46,10 @@
   .logo .name .cn{color:var(--muted);margin-left:8px;font-weight:600;}
 
   main{flex:1;display:flex;align-items:center;}
-  .auth{width:100%;max-width:440px;margin-inline:auto;padding-block:clamp(36px,6vh,72px);}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:34px 30px 30px;}
-  .card .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
-  .card h1{font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:-.01em;margin-top:8px;}
-  .card .sub{color:var(--faint);font-size:13.5px;line-height:1.6;margin-top:8px;}
+  .auth{width:100%;max-width:440px;margin-inline:auto;padding-block:clamp(28px,5vh,72px);}
+
+  .head h1{font-family:var(--display);font-size:clamp(32px,7vw,40px);font-weight:700;letter-spacing:-.01em;line-height:1.1;}
+  .head .sub{color:var(--faint);font-size:14px;line-height:1.6;margin-top:10px;}
 
   /* 表单 */
   form{display:flex;flex-direction:column;gap:18px;margin-top:26px;}
@@ -76,9 +75,14 @@
   .err{font-family:var(--body);font-size:12.5px;color:#ff6b5b;min-height:18px;line-height:1.5;}
   .done{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.04em;text-align:center;margin-top:6px;}
 
-  .foot{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;font-size:13.5px;color:var(--faint);}
+  .foot{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;font-size:13.5px;color:var(--faint);}
   .foot a{color:var(--accent);font-weight:600;}
   .foot a:hover{text-decoration:underline;}
+
+  @media (max-width:640px){
+    main{align-items:flex-start;}
+    .auth{padding-block:24px 48px;}
+  }
   </style>
 </head>
 <body>
@@ -96,34 +100,35 @@
 
     <main>
       <section class="auth" data-od-id="signup-auth">
-        <div class="card">
+        <div class="head">
           <h1>注册</h1>
-          <form id="signupForm" novalidate>
-            <div class="field">
-              <label for="email">邮箱</label>
-              <input class="input" id="email" type="email" inputmode="email" autocomplete="email"
-                     placeholder="you@example.com" required data-od-id="signup-email" />
-            </div>
-            <div class="field">
-              <label for="code">邮箱验证码</label>
-              <div class="row">
-                <input class="input" id="code" type="text" inputmode="numeric" autocomplete="one-time-code"
-                       placeholder="6 位验证码" maxlength="6" data-od-id="signup-code" />
-                <button class="btn btn-ghost btn-sm" id="sendCode" type="button" data-od-id="signup-send-code">发送验证码</button>
-              </div>
-              <p class="hint" id="codeHint" style="display:none;">验证码已发送至邮箱，5 分钟内有效</p>
-            </div>
-            <div class="field">
-              <label for="password">登录密码</label>
-              <input class="input" id="password" type="password" autocomplete="new-password"
-                     placeholder="至少 4 个字符" minlength="4" data-od-id="signup-password" />
-              <p class="hint">登录时可使用密码或验证码（4 个字符以上）</p>
-            </div>
-            <p class="err" id="err" role="alert"></p>
-            <button class="btn btn-primary" id="submit" type="submit" data-od-id="signup-submit">注册</button>
-            <p class="done" id="done" style="display:none;"></p>
-          </form>
+          <p class="sub">创建账号，开始记录你的每一次训练。</p>
         </div>
+        <form id="signupForm" novalidate>
+          <div class="field">
+            <label for="email">邮箱</label>
+            <input class="input" id="email" type="email" inputmode="email" autocomplete="email"
+                   placeholder="you@example.com" required data-od-id="signup-email" />
+          </div>
+          <div class="field">
+            <label for="code">邮箱验证码</label>
+            <div class="row">
+              <input class="input" id="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+                     placeholder="6 位验证码" maxlength="6" data-od-id="signup-code" />
+              <button class="btn btn-ghost btn-sm" id="sendCode" type="button" data-od-id="signup-send-code">发送验证码</button>
+            </div>
+            <p class="hint" id="codeHint" style="display:none;">验证码已发送至邮箱，5 分钟内有效</p>
+          </div>
+          <div class="field">
+            <label for="password">登录密码</label>
+            <input class="input" id="password" type="password" autocomplete="new-password"
+                   placeholder="至少 4 个字符" minlength="4" data-od-id="signup-password" />
+            <p class="hint">登录时可使用密码或验证码（4 个字符以上）</p>
+          </div>
+          <p class="err" id="err" role="alert"></p>
+          <button class="btn btn-primary" id="submit" type="submit" data-od-id="signup-submit">注册</button>
+          <p class="done" id="done" style="display:none;"></p>
+        </form>
         <div class="foot"><span>已有账号？</span><a href="/login" data-od-id="to-login">直接登录</a></div>
       </section>
     </main>

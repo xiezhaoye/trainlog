@@ -44,14 +44,13 @@
   .logo .name .cn{color:var(--muted);margin-left:8px;font-weight:600;}
 
   main{flex:1;display:flex;align-items:center;}
-  .auth{width:100%;max-width:440px;margin-inline:auto;padding-block:clamp(36px,6vh,72px);}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:34px 30px 30px;}
-  .card .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
-  .card h1{font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:-.01em;margin-top:8px;}
-  .card .sub{color:var(--faint);font-size:13.5px;line-height:1.6;margin-top:8px;}
+  .auth{width:100%;max-width:440px;margin-inline:auto;padding-block:clamp(28px,5vh,72px);}
+
+  .head h1{font-family:var(--display);font-size:clamp(32px,7vw,40px);font-weight:700;letter-spacing:-.01em;line-height:1.1;}
+  .head .sub{color:var(--faint);font-size:14px;line-height:1.6;margin-top:10px;}
 
   /* segmented：密码 / 验证码 */
-  .seg{display:flex;background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:4px;margin-top:22px;}
+  .seg{display:flex;background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:4px;margin-top:26px;}
   .seg button{flex:1;min-height:44px;border-radius:9px;border:0;color:var(--muted);font-size:14px;font-weight:600;
     background:transparent;cursor:pointer;transition:background .15s ease,color .15s ease,box-shadow .15s ease;}
   .seg button.is-active{background:var(--bg);color:var(--fg);box-shadow:0 1px 4px rgba(0,0,0,.35);}
@@ -84,6 +83,11 @@
   .foot a:hover{text-decoration:underline;}
 .remember{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--muted);cursor:pointer;}
   .remember input{width:18px;height:18px;accent-color:var(--accent);}
+
+  @media (max-width:640px){
+    main{align-items:flex-start;}
+    .auth{padding-block:24px 48px;}
+  }
 </style>
 </head>
 <body>
@@ -101,50 +105,52 @@
 
     <main>
       <section class="auth" data-od-id="login-auth">
-        <div class="card">
+        <div class="head">
           <h1>登录</h1>
+          <p class="sub">欢迎回来，继续记录你的训练。</p>
+        </div>
 
-          <div class="seg" id="seg" role="tablist" data-od-id="login-seg">
-            <button class="is-active" type="button" data-mode="password" role="tab" data-od-id="seg-password">密码登录</button>
-            <button type="button" data-mode="code" role="tab" data-od-id="seg-code">验证码登录</button>
+        <div class="seg" id="seg" role="tablist" data-od-id="login-seg">
+          <button class="is-active" type="button" data-mode="password" role="tab" data-od-id="seg-password">密码登录</button>
+          <button type="button" data-mode="code" role="tab" data-od-id="seg-code">验证码登录</button>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="email">邮箱</label>
+            <input class="input" id="email" type="email" inputmode="email" autocomplete="email"
+                   placeholder="you@example.com" required data-od-id="login-email" />
           </div>
 
-          <form id="loginForm" novalidate>
-            <div class="field">
-              <label for="email">邮箱</label>
-              <input class="input" id="email" type="email" inputmode="email" autocomplete="email"
-                     placeholder="you@example.com" required data-od-id="login-email" />
-            </div>
+          <!-- 密码方式 -->
+          <div class="field" id="pwField">
+            <label for="password">登录密码</label>
+            <input class="input" id="password" type="password" autocomplete="current-password"
+                   placeholder="输入密码" data-od-id="login-password" />
+          </div>
 
-            <!-- 密码方式 -->
-            <div class="field" id="pwField">
-              <label for="password">登录密码</label>
-              <input class="input" id="password" type="password" autocomplete="current-password"
-                     placeholder="输入密码" data-od-id="login-password" />
+          <!-- 验证码方式 -->
+          <div class="field" id="codeField" style="display:none;">
+            <label for="code">验证码</label>
+            <div class="row">
+              <input class="input" id="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+                     placeholder="6 位验证码" maxlength="6" data-od-id="login-code" />
+              <button class="btn btn-ghost btn-sm" id="sendCode" type="button" data-od-id="login-send-code">发送验证码</button>
             </div>
+          </div>
 
-            <!-- 验证码方式 -->
-            <div class="field" id="codeField" style="display:none;">
-              <label for="code">验证码</label>
-              <div class="row">
-                <input class="input" id="code" type="text" inputmode="numeric" autocomplete="one-time-code"
-                       placeholder="6 位验证码" maxlength="6" data-od-id="login-code" />
-                <button class="btn btn-ghost btn-sm" id="sendCode" type="button" data-od-id="login-send-code">发送验证码</button>
-              </div>
-            </div>
+          <label class="remember" for="rememberMe">
+            <input type="checkbox" id="rememberMe" checked data-od-id="login-remember" />
+            <span>记住用户名密码</span>
+          </label>
 
-            <label class="remember" for="rememberMe">
-              <input type="checkbox" id="rememberMe" checked data-od-id="login-remember" />
-              <span>记住用户名密码</span>
-            </label>
+          <div class="field">
+            <p class="err" id="err" role="alert"></p>
+            <button class="btn btn-primary" id="submit" type="submit" data-od-id="login-submit">登录</button>
+            <p class="done" id="done" style="display:none;"></p>
+          </div>
+        </form>
 
-            <div class="field">
-              <p class="err" id="err" role="alert"></p>
-              <button class="btn btn-primary" id="submit" type="submit" data-od-id="login-submit">登录</button>
-              <p class="done" id="done" style="display:none;"></p>
-            </div>
-          </form>
-        </div>
         <div class="foot"><span>还没有账号？</span><a href="/signup" data-od-id="to-signup">注册</a></div>
       </section>
     </main>
