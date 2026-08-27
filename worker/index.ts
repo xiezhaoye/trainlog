@@ -284,7 +284,7 @@ async function sessionUser(request: Request, env: Env) {
   if (!token) return null;
   const session = await env.AUTH_KV.get<{ userId: string; email: string }>(`session:${token}`, 'json');
   if (!session) return null;
-  return env.DB.prepare('SELECT id, email, display_name, skin FROM users WHERE id = ?').bind(session.userId).first<Row>();
+  return env.DB.prepare('SELECT id, email, display_name, skin, unit FROM users WHERE id = ?').bind(session.userId).first<Row>();
 }
 
 async function localDevelopmentUser(env: Env) {
@@ -410,9 +410,10 @@ async function userByEmail(db: D1Database, email: string) {
 }
 
 const VALID_SKINS = new Set(['athletic', 'heat', 'fire', 'fresh', 'efficient']);
+const VALID_UNITS = new Set(['kg', 'lb']);
 
 function publicUser(user: Row) {
-  return { id: user.id, email: user.email, displayName: user.display_name || null, skin: user.skin || null };
+  return { id: user.id, email: user.email, displayName: user.display_name || null, skin: user.skin || null, unit: user.unit || null };
 }
 
 async function authApi(request: Request, env: Env, url: URL): Promise<Response | null> {
@@ -574,6 +575,12 @@ async function api(request: Request, env: Env, url: URL) {
     if (!VALID_SKINS.has(skin)) fail('无效的皮肤');
     await db.prepare('UPDATE users SET skin = ?, updated_at = ? WHERE id = ?').bind(skin, now(), userId).run();
     return json({ ok: true, skin });
+  }
+  if (pathname === '/api/account/unit' && request.method === 'PUT') {
+    const input = await body(request); const unit = stringValue(input.unit);
+    if (!VALID_UNITS.has(unit)) fail('无效的单位');
+    await db.prepare('UPDATE users SET unit = ?, updated_at = ? WHERE id = ?').bind(unit, now(), userId).run();
+    return json({ ok: true, unit });
   }
 
   if (pathname === '/api/day' && request.method === 'GET') {

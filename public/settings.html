@@ -309,13 +309,19 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
   document.addEventListener('v2:skin-synced', function(e){
     var v=e.detail; if(!v||skin===v) return; skin=v; try{ localStorage.setItem(SKEY,skin); }catch(e){} applySkin();
   });
+  document.addEventListener('v2:unit-synced', function(e){
+    var v=e.detail; if(!v||unit===v) return; unit=v; try{ localStorage.setItem(UKEY,unit); }catch(e){} renderUnit();
+  });
   function renderUnit(){
     document.querySelectorAll('#unitSeg button').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-u')===unit); });
   }
   document.querySelectorAll('#unitSeg button').forEach(function(b){
     b.addEventListener('click', function(){
       var v=b.getAttribute('data-u');
-      if(unit!==v){ unit=v; try{ localStorage.setItem(UKEY,unit); }catch(e){} renderUnit(); toastMsg('已切换单位：'+(unit==='kg'?'公斤':'磅')); }
+      if(unit!==v){
+        unit=v; try{ localStorage.setItem(UKEY,unit); }catch(e){} renderUnit(); toastMsg('已切换单位：'+(unit==='kg'?'公斤':'磅'));
+        fetch('/api/account/unit', { method:'PUT', credentials:'same-origin', headers:{'content-type':'application/json'}, body: JSON.stringify({ unit: unit }) }).catch(function(){});
+      }
     });
   });
   applySkin();
