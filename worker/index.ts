@@ -114,14 +114,13 @@ function mapRecord(row: Row | null) {
     return {
       id: row.id, date: row.date, session: true, templateId: null,
       mood: row.mood == null ? null : Number(row.mood), completed: Boolean(row.completed),
-      syncCalendar: Boolean(row.sync_calendar), calendar: safeJson(row.calendar_json, null),
       actions: safeJson(row.resistance_exercises, []), createdAt: Date.parse(String(row.created_at))
     };
   }
   const base: Record<string, unknown> = {
     id: row.id, date: row.date, type: row.type, templateId: row.template_id,
     templateName: row.template_name, durationMinutes: row.duration_minutes,
-    syncCalendar: Boolean(row.sync_calendar), completed: Boolean(row.completed),
+    completed: Boolean(row.completed),
     createdAt: Date.parse(String(row.created_at))
   };
   if (row.type === 'cardio') {
@@ -286,13 +285,18 @@ async function sessionUser(request: Request, env: Env) {
   return env.DB.prepare('SELECT id, email, display_name FROM users WHERE id = ?').bind(session.userId).first<Row>();
 }
 
+async function localDevelopmentUser(env: Env) {
+  const stamp = now();
+  await env.DB.prepare(`INSERT OR IGNORE INTO users (id, email, display_name, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?)`)
+    .bind('local-dev-user', 'local@trainlog.life', 'Local Developer', stamp, stamp).run();
+  return env.DB.prepare('SELECT id, email, display_name FROM users WHERE id = ?').bind('local-dev-user').first<Row>();
+}
+
 async function requireUser(request: Request, env: Env) {
   const supplied = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '';
   if (env.DEV_BYPASS_AUTH === 'true' && supplied && supplied === env.LOCAL_DEV_TOKEN) {
-    const stamp = now();
-    await env.DB.prepare(`INSERT OR IGNORE INTO users (id, email, display_name, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)`)
-      .bind('local-dev-user', 'local@trainlog.life', 'Local Developer', stamp, stamp).run();
+    await localDevelopmentUser(env);
     return 'local-dev-user';
   }
   const user = await sessionUser(request, env);
@@ -352,10 +356,8 @@ function recordFields(input: Record<string, unknown>, previous?: Row | null) {
     cardioDuration: type === 'cardio' ? nullableNumber(cardio.duration ?? previous?.cardio_duration) : null,
     exercises: exercises == null ? null : JSON.stringify(exercises),
     duration: nullableNumber(input.durationMinutes ?? previous?.duration_minutes) ?? 60,
-    syncCalendar: input.syncCalendar === undefined ? Number(previous?.sync_calendar ?? 0) : (input.syncCalendar ? 1 : 0),
     completed: input.completed === undefined ? Number(previous?.completed ?? 0) : (input.completed ? 1 : 0),
-    mood: nullableNumber(input.mood ?? previous?.mood), session: session ? 1 : 0,
-    calendar: input.calendar === undefined ? previous?.calendar_json ?? null : JSON.stringify(input.calendar)
+    mood: nullableNumber(input.mood ?? previous?.mood), session: session ? 1 : 0
   };
 }
 
@@ -392,7 +394,7 @@ async function authApi(request: Request, env: Env, url: URL): Promise<Response |
   if (!pathname.startsWith('/api/auth/')) return null;
 
   if (pathname === '/api/auth/session' && request.method === 'GET') {
-    const user = await sessionUser(request, env);
+    const user = await sessionUser(request, env) || (env.DEV_BYPASS_AUTH === 'true' ? await localDevelopmentUser(env) : null);
     if (!user) return json({ ok: false, error: '请先登录' }, 401);
     return json({ ok: true, user: publicUser(user) });
   }
@@ -502,7 +504,7 @@ async function api(request: Request, env: Env, url: URL) {
   if (pathname === '/api/records' && request.method === 'POST') {
     const input = await body(request); const id = stringValue(input.id) || uid(); const fields = recordFields(input); const stamp = now();
     await db.prepare(`INSERT INTO records (id,user_id,date,type,template_id,template_name,cardio_action,cardio_speed,cardio_duration,resistance_exercises,duration_minutes,sync_calendar,completed,mood,session,calendar_json,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.syncCalendar, fields.completed, fields.mood, fields.session, fields.calendar, stamp, stamp).run();
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, 0, fields.completed, fields.mood, fields.session, null, stamp, stamp).run();
     return json({ ok: true, record: mapRecord(await recordById(db, userId, id)) }, 201);
   }
   const recordMatch = pathname.match(/^\/api\/records\/([^/]+)$/);
@@ -512,8 +514,8 @@ async function api(request: Request, env: Env, url: URL) {
     if (request.method === 'GET') return json({ ok: true, record: mapRecord(previous) });
     if (request.method === 'PUT' || request.method === 'PATCH') {
       const fields = recordFields(await body(request), previous);
-      await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=?,completed=?,mood=?,session=?,calendar_json=?,updated_at=? WHERE user_id=? AND id=?`)
-        .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.syncCalendar, fields.completed, fields.mood, fields.session, fields.calendar, now(), userId, id).run();
+      await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=0,completed=?,mood=?,session=?,calendar_json=NULL,updated_at=? WHERE user_id=? AND id=?`)
+        .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.completed, fields.mood, fields.session, now(), userId, id).run();
       return json({ ok: true, record: mapRecord(await recordById(db, userId, id)) });
     }
     if (request.method === 'DELETE') { await db.prepare('DELETE FROM records WHERE user_id = ? AND id = ?').bind(userId, id).run(); return json({ ok: true }); }
@@ -557,7 +559,6 @@ async function api(request: Request, env: Env, url: URL) {
     }));
     return json({ ok: true, from, to, days });
   }
-  if (pathname === '/api/calendar-events' && request.method === 'POST') return json({ ok: true, synced: false, error: 'calendar sync is not part of trainlog yet' });
   return json({ ok: false, error: 'not found' }, 404);
 }
 

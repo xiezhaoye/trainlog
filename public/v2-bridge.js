@@ -85,7 +85,6 @@
     var base = rec || { id: W.uid('r'), date: ds, type: 'cardio', templateId: action.tid, templateName: (tpl && tpl.name) || '有氧', createdAt: Date.now() };
     base.cardio = { action: action.name, speed: (tpl && tpl.speed != null) ? tpl.speed : null, duration: action.duration || 30 };
     base.durationMinutes = action.duration || 30;
-    base.syncCalendar = rec ? rec.syncCalendar : false;
     base.completed = !!action.done;
     return W.saveRecord(base);
   }
@@ -147,47 +146,11 @@
   }
 
   // ── 完成训练（整场） ──
-  function completeSession(dateStr, mood, syncCalendar, syncPlan) {
+  function completeSession(dateStr, mood, syncPlan) {
     var ds = dateStr || today();
-    var calendar = null;
-    if (syncCalendar) {
-      var end = Date.now(), start = end - 3600000;
-      var rows = W.dayPlanRows(ds);
-      var parts = [], detail = [];
-      rows.forEach(function (r) {
-        if (r.src === 'session') {
-          var a = r.a, isC = a.type === 'cardio', p = isC ? '有氧' : (a.part || '抗阻');
-          if (parts.indexOf(p) === -1) parts.push(p);
-          detail.push((isC ? '有氧·' : p + '·') + a.name + (isC ? (' ' + (a.duration || 30) + '分钟') : (' ' + ((a.sets || []).length || a.plan_sets || 0) + '组')));
-        } else if (r.src === 'tpl') {
-          var ex = r.ex;
-          if (parts.indexOf(ex.part) === -1) parts.push(ex.part);
-          detail.push(ex.part + '·' + ex.name + ' ' + ((r.recEx && (r.recEx.sets || []).length) || (ex.sets || []).length) + '组');
-        } else {
-          if (parts.indexOf('有氧') === -1) parts.push('有氧');
-          detail.push('有氧·' + (r.tpl.action || r.tpl.name) + ' ' + (r.tpl.duration || 30) + '分钟');
-        }
-      });
-      calendar = {
-        status: 'pending',
-        title: '训练 · ' + parts.join('/') + ' · ' + detail.length + ' 个动作',
-        start: new Date(start).toISOString(), end: new Date(end).toISOString(),
-        description: detail.join('\n'),
-      };
-    }
-    return W.completeDaySession(ds, mood, syncCalendar, calendar).then(function () {
-      var jobs = [];
-      if (syncPlan) jobs.push(W.syncDayPlanToTemplates(ds).catch(function () { return 0; }));
-      if (syncCalendar && calendar) {
-        jobs.push(W.syncCalendarEvent({
-          title: calendar.title, start: calendar.start, end: calendar.end, description: calendar.description,
-        }).then(function (res) {
-          var s = W.getDaySession(ds);
-          if (s) return W.saveDaySession(ds, s.actions, { completed: true, mood: mood, syncCalendar: true, calendar: { status: res.synced ? 'synced' : 'failed', title: calendar.title, start: calendar.start, end: calendar.end } });
-          return null;
-        }).catch(function () { return null; }));
-      }
-      return Promise.all(jobs);
+    return W.completeDaySession(ds, mood).then(function () {
+      if (!syncPlan) return null;
+      return W.syncDayPlanToTemplates(ds).catch(function () { return 0; });
     });
   }
 

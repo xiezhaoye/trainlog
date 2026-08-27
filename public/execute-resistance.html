@@ -256,7 +256,6 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
       <div class="modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></div>
       <div class="modal__title" id="finishTitle">完成本动作？</div>
       <label class="send-row" id="syncPlanRowIn" style="display:none;"><input type="checkbox" id="syncPlanIn" /><span>同步到计划</span></label>
-      <label class="send-row" style="border-top:0;"><input type="checkbox" id="syncCalIn" checked /><span>同步到日历</span></label>
       <div class="modal__actions">
         <button class="btn-ghost-sm" id="finishCancel" type="button">取消</button>
         <button class="btn-primary-sm" id="finishConfirm" type="button">完成本动作</button>
@@ -318,11 +317,11 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     var rec = bkIsCardio
       ? { id: W.uid('r'), date: bkDate, type: 'cardio', templateId: bkTid || null, templateName: bkTplName || '补记',
           cardio: { action: action.name, speed: null, duration: action.duration || 30 },
-          durationMinutes: action.duration || 30, syncCalendar: false, completed: true, createdAt: Date.now() }
+          durationMinutes: action.duration || 30, completed: true, createdAt: Date.now() }
       : { id: W.uid('r'), date: bkDate, type: 'resistance', templateId: bkTid || null, templateName: bkTplName || '补记',
           resistance: { exercises: [ { name: action.name, part: action.part, done: true, notes: action.notes || '',
               sets: (action.sets||[]).map(function(s){ return { weight_kg: s.weight_kg, is_bodyweight: !!s.is_bodyweight, reps: s.reps, done: true }; }) } ] },
-          durationMinutes: ((action.sets||[]).length || 1) * 8, syncCalendar: false, completed: true, createdAt: Date.now() };
+          durationMinutes: ((action.sets||[]).length || 1) * 8, completed: true, createdAt: Date.now() };
     if(existing) rec.id = existing.id;
     return V2.saveBackfill(rec);
   }
@@ -676,7 +675,6 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
       }).catch(function(e){ btn.disabled=false; toastMsg('补记失败：'+((e&&e.message)||'请重试'), true); });
       return;
     }
-    var sendCal=document.getElementById('syncCalIn').checked;
     var syncPlan=document.getElementById('syncPlanIn').checked && action.src==='tpl';
     action.done=true;
     action.finish_ts=Date.now();
@@ -686,19 +684,8 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     var jobs = [ V2.completeAction(today, action) ];
     if(syncPlan){ jobs.push(W.syncExerciseToTemplate(action.tid, action.ex, action.sets, action).catch(function(){ return null; })); }
     Promise.all(jobs).then(function(){
-      if(sendCal){
-        var mins=Math.max(1, Math.round((action.finish_ts-action.first_set_ts)/60000));
-        return W.syncCalendarEvent({
-          title:'训练 · '+(isCardio?'有氧':(action.part||'抗阻'))+' · '+action.name,
-          start:new Date(action.first_set_ts).toISOString(), end:new Date(action.finish_ts).toISOString(),
-          description:(isCardio?'有氧·':(action.part||'抗阻')+'·')+action.name,
-        }).then(function(res){ return !!res.synced; }).catch(function(){ return false; });
-      }
-      return Promise.resolve(false);
-    }).then(function(calOk){
       closeModal('finishScrim','finishModal');
       var msg = syncPlan ? '已完成 · 已同步到计划：'+action.name : '已完成：'+action.name;
-      if(sendCal && calOk){ msg='已发送到日历 '+fmtHM(action.first_set_ts)+'–'+fmtHM(action.finish_ts)+'：'+(isCardio?('有氧 · '+action.name+' '+(action.duration||30)+' 分钟'):(action.part+' · '+action.name+' '+action.sets.length+' 组')); }
       try{ sessionStorage.setItem('v2.toast', msg); }catch(e){}
       goHome();
     }).catch(function(e){ btn.disabled=false; toastMsg('完成失败：'+((e&&e.message)||'请重试'), true); });
