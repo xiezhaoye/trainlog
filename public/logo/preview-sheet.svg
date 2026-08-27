@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 340" width="880" height="340">
+  <rect width="880" height="340" fill="#16181d"/>
+  <text x="36" y="44" font-family="-apple-system,PingFang SC,sans-serif" font-size="22" font-weight="700" fill="#f4f3f1">trainlog · 概念 B「收满圆环」</text>
+
+  <!-- clear 态（透明）分组 -->
+  <g transform="translate(56,84)">
+    <circle cx="96" cy="96" r="80" fill="none" stroke="#a2d43f" stroke-width="6"/>
+    <circle cx="96" cy="88" r="80" fill="none" stroke="#a2d43f" stroke-width="22" stroke-dasharray="200 300" stroke-linecap="round" transform="rotate(-90 96 96)"/>
+    <path d="M70 96 L88 114 L122 76" fill="none" stroke="#121214" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="0" y="230" font-family="ui-monospace,Menlo,monospace" font-size="16" fill="#a9a3a0">favicon-clear</text>
+  </g>
+
+  <!-- dark 圆角方块态 -->
+  <g transform="translate(280,84)">
+    <rect x="0" y="0" width="192" height="192" rx="44" fill="#121214"/>
+    <circle cx="96" cy="96" r="62" fill="none" stroke="#f4f3f1" stroke-width="8"/>
+    <circle cx="96" cy="96" r="62" fill="none" stroke="#a2d43f" stroke-width="8" stroke-dasharray="200 190" stroke-linecap="round" transform="rotate(-90 96 96)"/>
+    <path d="M76 96 L90 110 L116 84" fill="none" stroke="#f4f3f1" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="0" y="222" font-family="ui-monospace,Menlo,monospace" font-size="16" fill="#a9a3a0">apple-touch / icon-dark</text>
+  </g>
+
+  <!-- wordmark dark -->
+  <g transform="translate(560,90)">
+    <circle cx="38" cy="40" r="30" fill="none" stroke="#f4f3f1" stroke-width="4"/>
+    <circle cx="38" cy="40" r="30" fill="none" stroke="#a2d43f" stroke-width="4" stroke-dasharray="90 100" stroke-linecap="round" transform="rotate(-90 38 40)"/>
+    <path d="M30 40 L37 47 L47 33" fill="none" stroke="#f4f3f1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="86" y="48" font-family="Avenir Next Condensed, Avenir Next, sans-serif" font-size="34" font-weight="700" fill="#f4f3f1">trainlog</text>
+    <text x="0" y="118" font-family="ui-monospace,Menlo,monospace" font-size="16" fill="#a9a3a0">wordmark · dark</text>
+  </g>
+</svg>

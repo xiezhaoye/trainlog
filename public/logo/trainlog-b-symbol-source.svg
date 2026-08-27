@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!--
+    trainlog · 概念 B「收满圆环」
+    品牌色：ink #121214 · lime #a2d43f · bone #f4f3f1
+    all shapes inside 32px safe area; 环 = 收满即完成的隐喻; 勾 = 完成
+  -->
+  <defs>
+    <symbol id="ring-check" viewBox="0 0 256 256">
+      <circle cx="128" cy="128" r="86" fill="none" stroke="#f4f3f1" stroke-width="22"/>
+      <circle cx="128" cy="128" r="86" fill="none" stroke="#a2d43f" stroke-width="22"
+              stroke-dasharray="360.6 140" stroke-linecap="round" transform="rotate(-90 128 128)"/>
+      <path d="M100 132 L120 152 L158 108" fill="none" stroke="#f4f3f1" stroke-width="18"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ring-invert" viewBox="0 0 256 256">
+      <circle cx="128" cy="128" r="86" fill="none" stroke="#121214" stroke-width="22"/>
+      <circle cx="128" cy="128" r="86" fill="none" stroke="#6f9f2c" stroke-width="22"
+              stroke-dasharray="360.6 140" stroke-linecap="round" transform="rotate(-90 128 128)"/>
+      <path d="M100 132 L120 152 L158 108" fill="none" stroke="#121214" stroke-width="18"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ring-clear" viewBox="0 0 256 256">
+      <circle cx="128" cy="128" r="86" fill="none" stroke="#a2d43f" stroke-width="24"/>
+      <path d="M100 132 L120 152 L158 108" fill="none" stroke="#121214" stroke-width="18"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>

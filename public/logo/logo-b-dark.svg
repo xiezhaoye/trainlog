@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 256" width="640" height="256">
+  <rect x="0" y="0" width="640" height="256" fill="#121214"/>
+  <circle cx="120" cy="126" r="74" fill="none" stroke="#f4f3f1" stroke-width="20"/>
+  <circle cx="120" cy="126" r="74" fill="none" stroke="#a2d43f" stroke-width="20"
+          stroke-dasharray="310 125" stroke-linecap="round" transform="rotate(-90 120 126)"/>
+  <path d="M96 128 L115 147 L152 105" fill="none" stroke="#f4f3f1" stroke-width="16"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="228" y="150" font-family="Avenir Next Condensed, Avenir Next, Helvetica Neue, sans-serif"
+        font-size="96" font-weight="700" letter-spacing="1" fill="#f4f3f1">trainlog</text>
+</svg>
