@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#18191b" />
+<script>/* EFGH 换肤启动：localStorage v2.skin → html[data-skin]，防首帧闪烁 */
+(function(){var m={heat:'#f7f7f5',fire:'#121214',fresh:'#f3f8f6',efficient:'#f4f6f9'};var s=null;try{s=localStorage.getItem('v2.skin');}catch(e){}
+if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
+
+<title>训练模板 · 训练（竞训深色 · 皮肤A）</title>
+<style>
+:root {
+  --bg:#18191b; --surface:#232527; --raised:#2c2e31;
+  --fg:#ececec; --muted:#9da1a5; --faint:#767a7e;
+  --border:#35383b; --border-bright:#4a4d51;
+  --accent:#a2d43f; --accent-strong:#86b52e; --on-accent:#1f2517;
+  --ok:#4db06f; --danger:#ea4a4a; --warn:#d9a23f;
+  --cat-res:#d99b3e; --cat-cardio:#3cb8cf;
+  --acc-tint: color-mix(in oklch, var(--accent) 14%, transparent);
+  --font-display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  --font-mono: "SF Mono",Menlo,ui-monospace,monospace;
+  --safe-top: env(safe-area-inset-top,0px);
+  --safe-bottom: env(safe-area-inset-bottom,0px);
+}
+:root { --body-bg:#0c0d0f; --app-ring:0 0 0 1px rgba(255,255,255,.04); --scrim-bg:rgba(5,6,8,.62); --seg-shadow:0 1px 4px rgba(0,0,0,.35); --ok-text:#07130b; --swatch-ring:0 0 0 1px rgba(255,255,255,.14); }
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;height:100%;}
+body{margin:0;height:100%;background:var(--body-bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-touch-callout:none;}
+a{color:inherit;text-decoration:none;}
+h1,h2,p{margin:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.stage{min-height:100%;display:flex;justify-content:center;}
+.app{position:relative;width:100%;max-width:430px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--app-ring);}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(8px + var(--safe-top)) 12px 10px;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
+.topbar__title{font-size:17px;font-weight:700;text-align:center;flex:1;}
+.back-chip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);font-size:15px;}
+
+.back-chip svg{width:16px;height:16px;}
+.topbar__plus{width:44px;height:44px;display:grid;place-items:center;color:var(--accent);border-radius:12px;}
+.topbar__plus:hover{background:var(--acc-tint);}
+.topbar__plus svg{width:20px;height:20px;}
+
+.content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 20px 24px;}
+.content::-webkit-scrollbar{width:0;}
+
+.hint{font-size:13px;color:var(--faint);line-height:1.6;margin:2px 2px 14px;}
+.segmented{display:flex;background:var(--raised);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:16px;}
+.segmented button{flex:1;min-height:44px;border-radius:9px;color:var(--muted);font-size:14px;font-weight:600;transition:background .15s ease,color .15s ease;}
+.segmented button.is-active{background:var(--bg);color:var(--fg);box-shadow:var(--seg-shadow);}
+.unit-legend{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);letter-spacing:.08em;margin:-8px 2px 16px;}
+
+.group-title{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.12em;margin:6px 2px 10px;}
+.tpl-card{width:100%;display:flex;align-items:center;gap:12px;min-height:62px;padding:8px 4px;border-top:1px solid var(--border);background:none;text-align:left;}
+.tpl-card:last-of-type{border-bottom:1px solid var(--border);}
+.tpl-card:hover .tpl-card__name{color:var(--accent);transition:color .15s ease;}
+.tpl-card__icon{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;}
+.tpl-card__icon--chest{background:color-mix(in oklch,var(--cat-res) 14%,transparent);color:var(--cat-res);}
+.tpl-card__icon--cardio{background:color-mix(in oklch,var(--cat-cardio) 14%,transparent);color:var(--cat-cardio);}
+.tpl-card__icon svg{width:18px;height:18px;}
+.tpl-card__body{flex:1;min-width:0;}
+.tpl-card__name{font-size:16px;font-weight:600;}
+.tpl-card__summary{font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-top:2px;}
+.tpl-card__chevron{flex:none;color:var(--faint);}
+.tpl-card__chevron svg{width:16px;height:16px;}
+.empty-hint{font-family:var(--font-mono);font-size:12px;color:var(--faint);text-align:center;padding:26px 0;letter-spacing:.06em;}
+
+.tabbar{flex:none;display:flex;border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);background:var(--bg);}
+.tabbar__btn{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font-size:11px;transition:color .15s ease;}
+.tabbar__btn svg{width:20px;height:20px;}
+.tabbar__btn.is-active{color:var(--accent);}
+
+.toast{position:absolute;left:14px;right:14px;top:calc(var(--safe-top) + 10px);z-index:60;background:var(--raised);border:1px solid var(--border-bright);
+  border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--fg);text-align:center;
+  opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
+.toast.is-in{opacity:1;transform:translateY(0);}
+.toast.is-err{border-color:var(--danger);color:var(--danger);}
+
+/* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
+html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--cat-res:#a8550b;--cat-cardio:#0e7490;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,27,.14);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,27,.22);}
+html[data-skin="heat"] .ring__num,html[data-skin="heat"] .stat-tile__num,html[data-skin="heat"] .set-view-row__weight,html[data-skin="heat"] .set-view-row__reps,html[data-skin="heat"] .cardio-view__num,html[data-skin="heat"] .stepper__value,html[data-skin="heat"] .cal-cell__num{font-weight:900;}
+html[data-skin="heat"] .ring__num{letter-spacing:-.03em;}
+html[data-skin="fire"]{--bg:#121214;--surface:#1c1e22;--raised:#26282d;--fg:#f4f3f1;--muted:#a9a3a0;--faint:#8b8782;--border:#3c3f45;--border-bright:#55585e;--accent:#ff7024;--accent-strong:#dd4a0d;--on-accent:#1c0f06;--ok:#3ecb72;--danger:#ff5040;--warn:#f8b04a;--cat-res:#f9992e;--cat-cardio:#a9dc4a;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(10,6,2,.62);--body-bg:#0a0b0e;--app-ring:0 0 0 1px rgba(255,255,255,.06);--scrim-bg:rgba(10,6,2,.68);--seg-shadow:0 1px 4px rgba(0,0,0,.35);--ok-text:#07130b;--swatch-ring:0 0 0 1px rgba(255,255,255,.18);}
+html[data-skin="fresh"]{--bg:#f3f8f6;--surface:#ffffff;--raised:#eef3f0;--fg:#1c2321;--muted:#59625f;--faint:#6f7874;--border:#e4e9e6;--border-bright:#cfd7d3;--accent:#26794a;--accent-strong:#1f633b;--on-accent:#ffffff;--ok:#15803c;--danger:#cf4436;--warn:#97660f;--cat-res:#8a6510;--cat-cardio:#1f6f78;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(31,42,38,.12);--body-bg:#dfe8e3;--app-ring:0 0 0 1px rgba(31,42,38,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(31,42,38,.09);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(31,42,38,.16);}
+html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg:#1c2028;--muted:#5a616b;--faint:#717a85;--border:#e3e7ee;--border-bright:#c2cad5;--accent:#3a62d6;--accent-strong:#234aa0;--on-accent:#ffffff;--ok:#2353b8;--danger:#cf4436;--warn:#99630f;--cat-res:#8a5f12;--cat-cardio:#3561ad;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(23,30,40,.12);--body-bg:#e9edf4;--app-ring:0 0 0 1px rgba(23,30,40,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,40,.10);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,40,.16);}
+html[data-skin="efficient"] .action-row,html[data-skin="efficient"] .set-row,html[data-skin="efficient"] .session-ex,html[data-skin="efficient"] .schedule-row,html[data-skin="efficient"] .set-view-row,html[data-skin="efficient"] .setting-row,html[data-skin="efficient"] .plan-row{border-color:color-mix(in oklch,var(--border) 55%,var(--bg) 45%);}
+html[data-skin="efficient"] .topbar,html[data-skin="efficient"] .dock,html[data-skin="efficient"] .bottom-bar,html[data-skin="efficient"] .tabbar,html[data-skin="efficient"] .cal-card,html[data-skin="efficient"] .day-card,html[data-skin="efficient"] .set-card,html[data-skin="efficient"] .note-card,html[data-skin="efficient"] .modal,html[data-skin="efficient"] .sheet,html[data-skin="efficient"] .surface,html[data-skin="efficient"] .card{border-color:color-mix(in oklch,var(--border) 70%,var(--bg) 30%);}
+html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__num,html[data-skin="efficient"] .set-view-row__weight,html[data-skin="efficient"] .set-view-row__reps,html[data-skin="efficient"] .cardio-view__num,html[data-skin="efficient"] .stepper__value,html[data-skin="efficient"] .cal-cell__num{letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+
+</style>
+</head>
+<body data-skin="athletic">
+<div class="stage">
+  <div class="app" data-od-id="templates-page">
+    <header class="topbar" data-od-id="templates-topbar">
+      <a class="back-chip" href="设置.html" data-od-id="tpl-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        返回
+      </a>
+      <div class="topbar__title">训练模板</div>
+      <a class="topbar__plus" href="模板编辑.html?new=1" aria-label="新增模板" data-od-id="add-template-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></a>
+    </header>
+
+    <main class="content">
+      <div class="hint">有氧与抗阻模板是"一堂课的蓝图"。点卡片编辑，右上 + 新建。</div>
+      <div class="group-title">有氧</div>
+      <div id="cardioList"></div>
+      <div class="group-title" style="margin-top:18px;">抗阻</div>
+      <div id="resList"></div>
+    </main>
+
+    <nav class="tabbar" data-od-id="tabbar">
+      <a class="tabbar__btn" href="首页.html" data-od-id="tab-today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>今天</a>
+      <a class="tabbar__btn" href="记录.html" data-od-id="tab-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="15" rx="3"/><path d="M4 10h16M8 3.5v3M16 3.5v3"/></svg>记录</a>
+      <a class="tabbar__btn is-active" href="设置.html" data-od-id="tab-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2h3.4l.5 2.3a7 7 0 0 1 1.9 1.1l2.2-.8 1.7 3-1.8 1.5a7.3 7.3 0 0 1 0 2.2l1.8 1.5-1.7 3-2.2-.8a7 7 0 0 1-1.9 1.1l-.5 2.3h-3.4l-.5-2.3a7 7 0 0 1-1.9-1.1l-2.2.8-1.7-3 1.8-1.5a7.3 7.3 0 0 1 0-2.2L4 8.8l1.7-3 2.2.8a7 7 0 0 1 1.9-1.1z"/><circle cx="12" cy="12" r="2.6"/></svg>设置</a>
+    </nav>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<script src="/config.js"></script>
+<script src="assets/app.js"></script>
+<script src="v2-bridge.js"></script>
+<script>
+(function(){
+  'use strict';
+  var toast=document.getElementById('toast'), toastTimer;
+  function toastMsg(msg){ toast.textContent=msg; toast.classList.add('is-in'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400); }
+
+  function summary(t){
+    return t.type==='cardio'
+      ? [t.action, t.speed?t.speed+'km/h':null, (t.duration||30)+'分钟'].filter(Boolean).join(' · ')
+      : (t.parts||[]).join('/')+' · '+(t.exercises||[]).length+'个动作';
+  }
+  function cardHTML(t){
+    var isCardio=t.type==='cardio';
+    var icon=isCardio?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="5" r="1.6"/><path d="M9 20l2.2-4 2.8 1.5L17 20M7 14l3-2.6 2 1.6 3-4.4M4 20l3-4"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10"/></svg>';
+    return '<button class="tpl-card" data-tpl="'+t.id+'" data-od-id="tpl-card-'+t.id+'">'+
+      '<span class="tpl-card__icon tpl-card__icon--'+(isCardio?'cardio':'chest')+'">'+icon+'</span>'+
+      '<span class="tpl-card__body"><span class="tpl-card__name">'+t.name+'</span><span class="tpl-card__summary">'+summary(t)+'</span></span>'+
+      '<span class="tpl-card__chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>'+
+    '</button>';
+  }
+  function render(templates){
+    var cardio=templates.filter(function(t){return t.type==='cardio';});
+    var res=templates.filter(function(t){return t.type==='resistance';});
+    document.getElementById('cardioList').innerHTML=cardio.length? cardio.map(cardHTML).join('') : '<div class="empty-hint">还没有有氧模板</div>';
+    document.getElementById('resList').innerHTML=res.length? res.map(cardHTML).join('') : '<div class="empty-hint">还没有抗阻模板</div>';
+    document.querySelectorAll('[data-tpl]').forEach(function(el){
+      el.addEventListener('click', function(){ location.href='模板编辑.html?id='+encodeURIComponent(el.getAttribute('data-tpl')); });
+    });
+  }
+
+  var pending=null; try{ pending=sessionStorage.getItem('v2.toast'); sessionStorage.removeItem('v2.toast'); }catch(e){}
+  if(pending) setTimeout(function(){ toastMsg(pending); },300);
+
+  // 数据来自真实后端：等 V2.ready（assets/app.js 拉取 /api/templates 等）后渲染。
+  V2.ready.then(function(){
+    render(V2.templates());
+  }).catch(function(err){
+    document.getElementById('cardioList').innerHTML='<div class="empty-hint">模板加载失败</div>';
+    document.getElementById('resList').innerHTML='';
+    if(window.console) console.error('[templates] 模板加载失败:', err);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#18191b" />
+<script>/* EFGH 换肤启动：localStorage v2.skin → html[data-skin]，防首帧闪烁 */
+(function(){var m={heat:'#f7f7f5',fire:'#121214',fresh:'#f3f8f6',efficient:'#f4f6f9'};var s=null;try{s=localStorage.getItem('v2.skin');}catch(e){}
+if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
+
+<title>执行训练 · 训练（竞训深色 · 皮肤A）</title>
+<style>
+:root {
+  --bg:#18191b; --surface:#232527; --raised:#2c2e31;
+  --fg:#ececec; --muted:#9da1a5; --faint:#767a7e;
+  --border:#35383b; --border-bright:#4a4d51;
+  --accent:#a2d43f; --accent-strong:#86b52e; --on-accent:#1f2517;
+  --ok:#4db06f; --danger:#ea4a4a; --warn:#d9a23f;
+  --cat-res:#d99b3e; --cat-cardio:#3cb8cf;
+  --ok-tint: color-mix(in oklch, var(--ok) 12%, transparent);
+  --acc-tint: color-mix(in oklch, var(--accent) 14%, transparent);
+  --danger-tint: color-mix(in oklch, var(--danger) 14%, transparent);
+  --shadow-float: 0 18px 44px rgba(0,0,0,.5);
+  --font-display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  --font-mono: "SF Mono",Menlo,ui-monospace,monospace;
+  --safe-top: env(safe-area-inset-top,0px);
+  --safe-bottom: env(safe-area-inset-bottom,0px);
+}
+:root { --body-bg:#0c0d0f; --app-ring:0 0 0 1px rgba(255,255,255,.04); --scrim-bg:rgba(5,6,8,.62); --seg-shadow:0 1px 4px rgba(0,0,0,.35); --ok-text:#07130b; --swatch-ring:0 0 0 1px rgba(255,255,255,.14); }
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;height:100%;}
+body{margin:0;height:100%;background:var(--body-bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-touch-callout:none;}
+input,textarea{font:inherit;color:var(--fg);}
+a{color:inherit;text-decoration:none;}
+h1,h2,h3,p{margin:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.stage{min-height:100%;display:flex;justify-content:center;}
+.app{position:relative;width:100%;max-width:430px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--app-ring);}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(8px + var(--safe-top)) 12px 10px;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
+.topbar__title{font-size:17px;font-weight:700;text-align:center;flex:1;}
+.back-chip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);font-size:15px;}
+.back-chip svg{width:16px;height:16px;}
+
+.content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 20px calc(24px + var(--safe-bottom));}
+.content::-webkit-scrollbar{width:0;}
+
+.exec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.tag{flex:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:6px 10px;border-radius:8px;line-height:1;}
+.tag--res{background:color-mix(in oklch,var(--cat-res) 16%,transparent);color:var(--cat-res);}
+.tag--cardio{background:color-mix(in oklch,var(--cat-cardio) 16%,transparent);color:var(--cat-cardio);}
+.exec-head__name{font-size:20px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;margin-top:2px;}
+.exec-head__status{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;font-weight:600;}
+.exec-head__status svg{width:15px;height:15px;}
+.status--pending{color:var(--muted);}
+.status--done{color:var(--ok);}
+.exec-head__meta{font-family:var(--font-mono);font-size:11.5px;color:var(--faint);letter-spacing:.04em;margin-top:8px;text-align:right;flex:none;}
+
+/* ── 查看模式：完成态组摘要卡 ── */
+.set-card{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:6px 16px 12px;}
+.set-card__hint{font-family:var(--font-mono);font-size:11px;color:var(--faint);letter-spacing:.12em;padding:12px 2px 4px;}
+
+.set-view-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-top:1px solid var(--border);}
+.set-view-row:first-of-type{border-top:0;}
+.set-view-row__idx{flex:none;width:40px;font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--fg);}
+.set-view-row__detail{flex:1;display:flex;align-items:center;gap:10px;}
+.set-view-row__weight{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--fg);letter-spacing:-.02em;}
+.set-view-row__x{font-size:14px;color:var(--faint);}
+.set-view-row__reps{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--fg);letter-spacing:-.02em;}
+.set-view-row__unit{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;}
+.set-view-row__bw{font-family:var(--font-mono);font-size:12px;color:var(--muted);background:var(--raised);border-radius:6px;padding:4px 8px;letter-spacing:.06em;}
+.set-view-row__check{flex:none;width:26px;height:26px;border-radius:50%;background:var(--ok);display:grid;place-items:center;color:var(--ok-text);}
+.set-view-row__check svg{width:15px;height:15px;}
+
+.set-view-all-done{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;padding:10px 2px 4px;font-size:13px;color:var(--ok);font-weight:600;}
+
+/* ── 编辑模式：组编辑卡 ── */
+.set-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--border);}
+.set-row:first-of-type{border-top:0;}
+.set-row.is-done{background:var(--ok-tint);border-radius:10px;}
+.set-row.is-done .set-row__idx{color:var(--ok);}
+.set-row.is-done .set-input{color:var(--ok);border-bottom-color:color-mix(in oklch,var(--ok) 55%,var(--border-bright));}
+.set-row.is-done .set-input::placeholder{color:color-mix(in oklch,var(--ok) 55%,var(--faint));}
+.set-row.is-done .bw-toggle{border-color:color-mix(in oklch,var(--ok) 45%,var(--border-bright));color:var(--ok);}
+.set-row.is-done .bw-toggle.is-active{background:var(--ok-tint);}
+.set-row__idx{flex:none;width:48px;padding-left:8px;font-family:var(--font-mono);font-size:13px;color:var(--muted);transition:color .15s ease;}
+.set-row__del{flex:none;width:44px;height:44px;display:grid;place-items:center;color:var(--faint);border-radius:12px;}
+.set-row__del:hover{color:var(--danger);}
+.bw-toggle{flex:none;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-bright);color:var(--fg);font-size:13px;font-weight:600;transition:all .15s ease;}
+.bw-toggle.is-active{background:var(--acc-tint);border-color:var(--accent);color:var(--accent);}
+.set-input{flex:1;min-width:0;height:42px;border:0;border-bottom:1px solid var(--border-bright);background:transparent;font-family:var(--font-mono);font-size:17px;font-weight:600;text-align:center;transition:border-color .15s ease;}
+.set-input:focus{outline:none;border-bottom-color:var(--accent);}
+.set-input::placeholder{color:var(--faint);font-weight:400;}
+.set-done{flex:none;width:44px;height:44px;display:grid;place-items:center;}
+.set-done__circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border-bright);color:transparent;display:grid;place-items:center;transition:all .15s ease;}
+.set-done__circle svg{width:15px;height:15px;}
+.set-done.is-checked .set-done__circle{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.set-empty{text-align:center;padding:26px 0 20px;color:var(--faint);font-size:14px;line-height:1.7;}
+.add-set-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;border:1px dashed var(--border-bright);border-radius:12px;color:var(--muted);font-size:14px;font-weight:600;margin-top:4px;}
+.add-set-btn:hover{border-color:var(--accent);color:var(--accent);}
+.plan-sync-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;border-radius:12px;background:var(--acc-tint);color:var(--accent);font-size:14px;font-weight:700;margin-top:8px;}
+.plan-sync-btn:hover{background:color-mix(in oklch,var(--accent) 20%,transparent);}
+
+/* ── 查看模式：有氧时长 ── */
+.cardio-view{display:flex;flex-direction:column;align-items:center;padding:20px 0 8px;gap:4px;}
+.cardio-view__num{font-family:var(--font-display);font-size:42px;font-weight:800;color:var(--accent);line-height:1;letter-spacing:-.03em;}
+.cardio-view__label{font-family:var(--font-mono);font-size:12px;color:var(--faint);letter-spacing:.12em;}
+
+/* ── 编辑模式：有氧步进 ── */
+.stepper{display:flex;align-items:center;justify-content:space-between;background:var(--raised);border:1px solid var(--border);border-radius:12px;margin:10px 2px 12px;}
+.stepper__btn{width:56px;min-height:48px;font-size:22px;display:grid;place-items:center;color:var(--fg);}
+.stepper__btn:hover{color:var(--accent);}
+.stepper__value{font-family:var(--font-mono);font-size:18px;color:var(--accent);font-weight:700;}
+
+/* ── 查看模式：体会展示 ── */
+.note-card{margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;}
+.note-card__label{font-family:var(--font-mono);font-size:11px;color:var(--faint);letter-spacing:.12em;}
+.note-view-text{font-size:15px;line-height:1.7;color:var(--fg);padding:8px 0 2px;white-space:pre-wrap;}
+.note-view-empty{font-size:14px;color:var(--faint);padding:8px 0 2px;font-style:italic;}
+.note-input{width:100%;border:0;background:transparent;margin-top:10px;font-size:15px;line-height:1.6;resize:none;min-height:56px;}
+.note-input:focus{outline:none;}
+.note-input::placeholder{color:var(--faint);}
+.notes-history{margin-top:14px;border-top:1px dashed var(--border);padding-top:11px;}
+.notes-history__head{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter-spacing:.1em;}
+.nh-row{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:14px;}
+.nh-row:first-of-type{border-top:0;}
+.nh-date{flex:none;font-family:var(--font-mono);font-size:11px;color:var(--faint);letter-spacing:.04em;}
+.nh-text{flex:1;color:var(--fg);line-height:1.5;}
+.nh-empty{font-size:13px;color:var(--faint);padding:10px 0 2px;}
+
+.del-exercise{margin-top:18px;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;color:var(--danger);font-size:14px;font-weight:600;border-radius:12px;}
+.del-exercise:hover{background:var(--danger-tint);}
+
+.bottom-bar{flex:none;display:flex;gap:10px;background:var(--bg);padding:10px 20px calc(10px + var(--safe-bottom));border-top:1px solid var(--border);}
+.btn-danger-ghost{flex:none;min-height:52px;padding:0 22px;border-radius:14px;border:1px solid color-mix(in oklch,var(--danger) 55%,var(--border-bright));color:var(--danger);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s ease,border-color .15s ease;}
+.btn-danger-ghost:hover{background:var(--danger-tint);border-color:var(--danger);}
+.btn-danger-ghost svg{width:16px;height:16px;}
+.btn-ghost{flex:none;min-height:52px;min-width:94px;padding:0 22px;border-radius:14px;border:1px solid var(--border-bright);color:var(--fg);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s ease,border-color .15s ease;}
+.btn-ghost:hover{background:color-mix(in oklch,var(--fg) 8%,transparent);border-color:var(--accent);color:var(--accent);}
+.btn-ghost-big{flex:1;min-height:52px;border-radius:14px;border:1px solid var(--border-bright);color:var(--fg);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:border-color .15s ease,color .15s ease;}
+.btn-ghost-big:hover{border-color:var(--accent);color:var(--accent);}
+.btn-primary{width:100%;min-height:52px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:16px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s ease,transform .06s ease;}
+.btn-primary:hover{background:var(--accent-strong);}
+.btn-primary:active{transform:translateY(1px);}
+.btn-primary:disabled{background:var(--border);color:var(--faint);cursor:not-allowed;}
+.btn-primary.is-completed{background:var(--ok);color:var(--ok-text);}
+
+.scrim{position:absolute;inset:0;z-index:40;background:var(--scrim-bg);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.scrim.is-open{opacity:1;pointer-events:auto;}
+.surface{background:var(--surface);border:1px solid var(--border);border-radius:16px;}
+.modal{position:absolute;left:12px;right:12px;top:50%;transform:translateY(calc(-50% + 12px)) scale(.98);z-index:41;padding:22px;box-shadow:var(--shadow-float);
+  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;}
+.modal.is-open{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1);}
+.modal__icon{width:46px;height:46px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:var(--acc-tint);color:var(--accent);}
+.modal__icon svg{width:22px;height:22px;}
+.modal__icon.is-danger{background:var(--danger-tint);color:var(--danger);}
+.modal__title{text-align:center;font-size:18px;font-weight:700;}
+.modal__sub{text-align:center;font-size:13px;color:var(--muted);margin-top:6px;}
+.modal__actions{display:flex;gap:10px;margin-top:20px;}
+.btn-primary-sm{flex:1;min-height:48px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:800;}
+.btn-primary-sm:hover{background:var(--accent-strong);}
+.btn-ghost-sm{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--border-bright);color:var(--fg);font-size:15px;font-weight:600;}
+.btn-ghost-sm:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger-sm{flex:1;min-height:48px;border-radius:12px;background:var(--danger);color:#fff;font-size:15px;font-weight:800;}
+.btn-danger-sm:hover{background:color-mix(in oklch,var(--danger) 88%,black);}
+.send-row{display:flex;align-items:center;gap:10px;padding:12px 2px;font-size:15px;color:var(--fg);cursor:pointer;border-top:1px solid var(--border);}
+.send-row:first-of-type{border-top:0;}
+.send-row input{width:20px;height:20px;accent-color:var(--accent);}
+
+.toast{position:absolute;left:14px;right:14px;top:calc(var(--safe-top) + 10px);z-index:60;background:var(--raised);border:1px solid var(--border-bright);
+  border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--fg);text-align:center;
+  opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
+.toast.is-in{opacity:1;transform:translateY(0);}
+.toast.is-err{border-color:var(--danger);color:var(--danger);}
+
+/* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
+html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--cat-res:#a8550b;--cat-cardio:#0e7490;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,27,.14);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,27,.22);}
+html[data-skin="heat"] .ring__num,html[data-skin="heat"] .stat-tile__num,html[data-skin="heat"] .set-view-row__weight,html[data-skin="heat"] .set-view-row__reps,html[data-skin="heat"] .cardio-view__num,html[data-skin="heat"] .stepper__value,html[data-skin="heat"] .cal-cell__num{font-weight:900;}
+html[data-skin="heat"] .ring__num{letter-spacing:-.03em;}
+html[data-skin="fire"]{--bg:#121214;--surface:#1c1e22;--raised:#26282d;--fg:#f4f3f1;--muted:#a9a3a0;--faint:#8b8782;--border:#3c3f45;--border-bright:#55585e;--accent:#ff7024;--accent-strong:#dd4a0d;--on-accent:#1c0f06;--ok:#3ecb72;--danger:#ff5040;--warn:#f8b04a;--cat-res:#f9992e;--cat-cardio:#a9dc4a;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(10,6,2,.62);--body-bg:#0a0b0e;--app-ring:0 0 0 1px rgba(255,255,255,.06);--scrim-bg:rgba(10,6,2,.68);--seg-shadow:0 1px 4px rgba(0,0,0,.35);--ok-text:#07130b;--swatch-ring:0 0 0 1px rgba(255,255,255,.18);}
+html[data-skin="fresh"]{--bg:#f3f8f6;--surface:#ffffff;--raised:#eef3f0;--fg:#1c2321;--muted:#59625f;--faint:#6f7874;--border:#e4e9e6;--border-bright:#cfd7d3;--accent:#26794a;--accent-strong:#1f633b;--on-accent:#ffffff;--ok:#15803c;--danger:#cf4436;--warn:#97660f;--cat-res:#8a6510;--cat-cardio:#1f6f78;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(31,42,38,.12);--body-bg:#dfe8e3;--app-ring:0 0 0 1px rgba(31,42,38,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(31,42,38,.09);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(31,42,38,.16);}
+html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg:#1c2028;--muted:#5a616b;--faint:#717a85;--border:#e3e7ee;--border-bright:#c2cad5;--accent:#3a62d6;--accent-strong:#234aa0;--on-accent:#ffffff;--ok:#2353b8;--danger:#cf4436;--warn:#99630f;--cat-res:#8a5f12;--cat-cardio:#3561ad;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(23,30,40,.12);--body-bg:#e9edf4;--app-ring:0 0 0 1px rgba(23,30,40,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,40,.10);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,40,.16);}
+html[data-skin="efficient"] .action-row,html[data-skin="efficient"] .set-row,html[data-skin="efficient"] .session-ex,html[data-skin="efficient"] .schedule-row,html[data-skin="efficient"] .set-view-row,html[data-skin="efficient"] .setting-row,html[data-skin="efficient"] .plan-row{border-color:color-mix(in oklch,var(--border) 55%,var(--bg) 45%);}
+html[data-skin="efficient"] .topbar,html[data-skin="efficient"] .dock,html[data-skin="efficient"] .bottom-bar,html[data-skin="efficient"] .tabbar,html[data-skin="efficient"] .cal-card,html[data-skin="efficient"] .day-card,html[data-skin="efficient"] .set-card,html[data-skin="efficient"] .note-card,html[data-skin="efficient"] .modal,html[data-skin="efficient"] .sheet,html[data-skin="efficient"] .surface,html[data-skin="efficient"] .card{border-color:color-mix(in oklch,var(--border) 70%,var(--bg) 30%);}
+html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__num,html[data-skin="efficient"] .set-view-row__weight,html[data-skin="efficient"] .set-view-row__reps,html[data-skin="efficient"] .cardio-view__num,html[data-skin="efficient"] .stepper__value,html[data-skin="efficient"] .cal-cell__num{letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+
+</style>
+</head>
+<body data-skin="athletic">
+<div class="stage">
+  <div class="app" data-od-id="execute-page">
+    <header class="topbar" data-od-id="exec-topbar">
+      <button class="back-chip" id="backBtn" type="button" data-od-id="exec-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        返回
+      </button>
+      <div class="topbar__title" id="pageTitle">执行训练</div>
+      <div style="width:76px;"></div>
+    </header>
+
+    <main class="content">
+      <section class="exec-head" data-od-id="exec-head">
+        <div>
+          <span class="tag tag--res" id="execTag">抗阻</span>
+          <h1 class="exec-head__name" id="execName">动作名</h1>
+          <span class="exec-head__status status--pending" id="execStatus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>已完成</span>
+        </div>
+        <div class="exec-head__meta" id="execMeta">今天 · 训练安排</div>
+      </section>
+
+      <section class="set-card" id="setsCard" data-od-id="sets-card">
+        <div class="set-card__hint" id="setHint">组数 · 重量 · 次数</div>
+        <div id="setList" data-od-id="set-list"></div>
+        <div id="setViewList" style="display:none;" data-od-id="set-view-list"></div>
+        <button class="add-set-btn" id="addSetBtn" type="button" data-od-id="add-set-btn" style="display:none;">＋ 添加组</button>
+      </section>
+
+      <section class="set-card" id="cardioCard" style="display:none;" data-od-id="cardio-card">
+        <div class="set-card__hint" id="cardioHint">训练时长</div>
+        <div class="cardio-view" id="cardioView" data-od-id="cardio-view">
+          <span class="cardio-view__num" id="cardioViewNum">30</span>
+          <span class="cardio-view__label">分钟</span>
+        </div>
+        <div class="stepper" id="cardioEdit" style="display:none;">
+          <button class="stepper__btn" id="durMinus" type="button" aria-label="减少时长">－</button>
+          <span class="stepper__value" id="durValue">30</span>
+          <button class="stepper__btn" id="durPlus" type="button" aria-label="增加时长">＋</button>
+        </div>
+      </section>
+
+      <section class="note-card" data-od-id="notes-card">
+        <div class="note-card__label">动作体会</div>
+        <div class="note-view-text" id="noteViewText" style="display:none;"></div>
+        <div class="note-view-empty" id="noteViewEmpty" style="display:none;">尚未记录动作体会</div>
+        <textarea class="note-input" id="notesInput" rows="2" placeholder="这组重量 / 次数感觉如何，想留下的都可以写…" style="display:none;"></textarea>
+        <div class="notes-history" id="notesHistory">
+          <div class="notes-history__head">历史体会 · <span id="notesHeadName"></span></div>
+          <div id="notesList"></div>
+          <div class="nh-empty" id="notesEmpty" style="display:none;">这个动作还没有留下过体会</div>
+        </div>
+      </section>
+
+      </main>
+
+    <footer class="bottom-bar" data-od-id="exec-bottom-bar">
+      <div id="finishSlot" style="flex:1;"></div>
+    </footer>
+
+    <div class="scrim" id="finishScrim" role="dialog" aria-modal="true" aria-label="确认完成本动作"></div>
+    <div class="modal surface" id="finishModal" data-od-id="finish-modal">
+      <div class="modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div class="modal__title" id="finishTitle">完成本动作？</div>
+      <label class="send-row" id="syncPlanRowIn" style="display:none;"><input type="checkbox" id="syncPlanIn" /><span>同步到计划</span></label>
+      <label class="send-row" style="border-top:0;"><input type="checkbox" id="syncCalIn" checked /><span>同步到日历</span></label>
+      <div class="modal__actions">
+        <button class="btn-ghost-sm" id="finishCancel" type="button">取消</button>
+        <button class="btn-primary-sm" id="finishConfirm" type="button">完成本动作</button>
+      </div>
+    </div>
+
+    <div class="scrim" id="delScrim" role="dialog" aria-modal="true" aria-label="删除该动作"></div>
+    <div class="modal surface" id="delModal" data-od-id="del-modal">
+      <div class="modal__icon is-danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13"/></svg></div>
+      <div class="modal__title" id="delTitle">删除该动作？</div>
+      <div class="modal__sub">删除后无法恢复，将从今日「训练安排」中移除</div>
+      <div class="modal__actions">
+        <button class="btn-ghost-sm" id="delCancel" type="button">取消</button>
+        <button class="btn-danger-sm" id="delConfirm" type="button">删除</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<script src="/config.js"></script>
+<script src="assets/app.js"></script>
+<script src="v2-bridge.js"></script>
+<script>
+(function(){
+  'use strict';
+  var W = window.Workout, V2 = window.V2;
+  var today = V2.today();
+  var actions = [], action = null, idx = -1, templatesOf = [];
+  var params = null, id = null, bkMode = false, bkDate = '', bkIsCardio = false, bkTid = null, bkTplName = '';
+  // 动作体会历史：v2 原型客户端特性，保留在 localStorage（不入后端；当前体会经 action.notes 入库）
+  var NKEY = 'v2.notes';
+  var notes = (function(){ var v=null; try{ v=JSON.parse(localStorage.getItem(NKEY)); }catch(e){} return Array.isArray(v)?v:[]; })();
+  function getNotes(){ return notes; }
+  function setNotes(n){ notes=n; try{ localStorage.setItem(NKEY, JSON.stringify(n)); }catch(e){} }
+  function load(){ return V2.actionsFor(today); }
+  function save(a){ actions = a; /* 实际落库走 V2.saveAction */ }
+  function deep(o){ return JSON.parse(JSON.stringify(o)); }
+  function fmtBkDate(s){ if(!s) return ''; var p=s.split('-').map(Number); return p[1]+'月'+p[2]+'日'; }
+  // 补记历史：从后端记录读（v2 里是 localStorage v2.history）
+  function getHistory(){
+    return V2.records().map(function(r){
+      if(r.type==='cardio') return {date:r.date, type:'cardio', name:r.cardio.action, minutes:r.cardio.duration||30, id:r.id};
+      var exs=(r.resistance&&r.resistance.exercises)||[];
+      return {date:r.date, type:'resistance', name:(exs[0]&&exs[0].name)||r.templateName||'', minutes:r.durationMinutes||(exs.length*8), id:r.id};
+    });
+  }
+  function setHistory(){ /* 补记落库由 saveBackfillRecord 创建真实记录 */ }
+  function findBackfillRecord(){
+    return V2.records().filter(function(r){
+      if(r.date!==bkDate) return false;
+      if(r.type==='cardio') return r.cardio && r.cardio.action===action.name;
+      return r.resistance && r.resistance.exercises[0] && r.resistance.exercises[0].name===action.name;
+    })[0] || null;
+  }
+  function saveBackfillRecord(){
+    var existing = findBackfillRecord();
+    var rec = bkIsCardio
+      ? { id: W.uid('r'), date: bkDate, type: 'cardio', templateId: bkTid || null, templateName: bkTplName || '补记',
+          cardio: { action: action.name, speed: null, duration: action.duration || 30 },
+          durationMinutes: action.duration || 30, syncCalendar: false, completed: true, createdAt: Date.now() }
+      : { id: W.uid('r'), date: bkDate, type: 'resistance', templateId: bkTid || null, templateName: bkTplName || '补记',
+          resistance: { exercises: [ { name: action.name, part: action.part, done: true, notes: action.notes || '',
+              sets: (action.sets||[]).map(function(s){ return { weight_kg: s.weight_kg, is_bodyweight: !!s.is_bodyweight, reps: s.reps, done: true }; }) } ] },
+          durationMinutes: ((action.sets||[]).length || 1) * 8, syncCalendar: false, completed: true, createdAt: Date.now() };
+    if(existing) rec.id = existing.id;
+    return V2.saveBackfill(rec);
+  }
+  function fmtNoteDate(ts){
+    var d=new Date(ts); var p=function(n){ return (n<10?'0':'')+n; };
+    return (d.getMonth()+1)+'月'+d.getDate()+'日 '+p(d.getHours())+':'+p(d.getMinutes());
+  }
+  function renderNotesHistory(){
+    var mine=notes.filter(function(n){ return n.name===action.name; }).sort(function(a,b){ return b.ts-a.ts; });
+    document.getElementById('notesHeadName').textContent=action.name;
+    var list=document.getElementById('notesList');
+    var empty=document.getElementById('notesEmpty');
+    if(!mine.length){ list.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    list.innerHTML=mine.map(function(n){
+      return '<div class="nh-row"><span class="nh-date">'+fmtNoteDate(n.ts)+'</span><span class="nh-text">'+n.note+'</span></div>';
+    }).join('');
+  }
+
+  // 数据从后端加载完成后解析动作并渲染
+  V2.ready.then(function(){
+    actions = load();
+    templatesOf = V2.templates();
+    params = new URLSearchParams(window.location.search);
+    id = params.get('a');
+    bkMode=false; bkDate=''; bkIsCardio=false; bkTid=null; bkTplName='';
+    if(params.get('tid')){
+      var bk_tpl=templatesOf.filter(function(t){return t.id===params.get('tid');})[0];
+      if(bk_tpl){
+        bkMode=true; bkDate=params.get('date')||''; bkIsCardio=bk_tpl.type==='cardio'; bkTid=bk_tpl.id; bkTplName=bk_tpl.name;
+        var bkEi=Math.max(0, parseInt(params.get('ex'),10)||0);
+        if(bkIsCardio){
+          action={type:'cardio', part:'有氧', name:bk_tpl.action||bk_tpl.name, duration:bk_tpl.duration||30, notes:'', src:'bk', sets:[], done:false, plan_sets:0};
+        } else {
+          var bk_ex=bk_tpl.exercises[bkEi];
+          if(bk_ex){ action={type:'resistance', part:bk_ex.part, name:bk_ex.name, notes:'', src:'bk', done:false, sets:deep(bk_ex.sets||[])}; action.plan_sets=action.sets.length; }
+          else { bkMode=false; }
+        }
+        if(bkMode){
+          var hist=getHistory();
+          if(hist.some(function(r){ return r.date===bkDate && r.name===action.name; })){ action.done=true; action.sets.forEach(function(s){ s.done=true; }); }
+        }
+        var viewMode = params.get('mode') === 'view';
+        if(bkMode && viewMode) {
+          action.done = true;
+          action.sets.forEach(function(s){ s.done = true; });
+        }
+      }
+    }
+    if(!action) ensureAction();
+    initUI();
+  }).catch(function(e){ toastMsg('数据加载失败：'+((e&&e.message)||'请刷新重试'), true); });
+
+  function ensureAction(){
+    var found=null;
+    actions.forEach(function(a,i){ if(a.id===id) found={a:a,i:i}; });
+    if(found){ action=found.a; idx=found.i; return; }
+    var live = actions.filter(function(a){ return !a.done; })[0] || actions[0];
+    if(live){ action=live; idx=actions.indexOf(live); return; }
+    // 没有任何可用动作：回首页
+    location.href='首页.html';
+  }
+
+  var toast = document.getElementById('toast'), toastTimer;
+  function toastMsg(msg, isErr){
+    toast.textContent=msg;
+    toast.classList.toggle('is-err', !!isErr);
+    toast.classList.add('is-in');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); }, 2400);
+  }
+  function goHome(){ location.href='首页.html'; }
+  function goBack(){ var d = bkDate || (params && params.get('date')) || ''; location.href = d ? ('记录.html?date='+encodeURIComponent(d)) : '首页.html'; }
+  function goBackFromModal(){ goBack(); }
+  function setTitle(){
+    document.getElementById('pageTitle').textContent = action.done ? (editing?'编辑动作':'查看动作') : (bkMode?'补记训练':'执行训练');
+  }
+  var editing=false;
+  var originalSnapshot = null;
+  function readonly(){ return action.done && !editing; }
+  function snapshotAction(){ originalSnapshot = deep(action); }
+  function restoreFromSnapshot(){
+    if(!originalSnapshot) return;
+    var snap = originalSnapshot;
+    Object.keys(snap).forEach(function(k){ action[k] = snap[k]; });
+    action.sets = snap.sets.map(function(s){ return Object.assign({}, s); });
+  }
+
+  var isCardio = false;
+  function initUI(){
+    isCardio = action.type==='cardio';
+    setTitle();
+    // 标题合并为「部位 ｜ 动作名」一行，隐藏单独的 tag 与 meta
+    var tag = document.getElementById('execTag');
+    tag.style.display = 'none';
+    document.getElementById('execName').textContent = (isCardio?'有氧':(action.part||'抗阻')) + ' ｜' + action.name;
+    document.getElementById('execMeta').style.display = 'none';
+    if(!action.sets) action.sets = [];
+    /* 添加/隐藏卡片 */
+    document.getElementById('setsCard').style.display = isCardio ? 'none':'block';
+    document.getElementById('cardioCard').style.display = isCardio ? 'block':'none';
+    document.getElementById('cardioHint').textContent = isCardio ? '训练时长' : '';
+    renderStatus();
+    renderCardio();
+    renderSets();
+    renderNotes();
+    updateUI();
+    renderNotesHistory();
+  }
+
+  function renderStatus(){
+    var st = document.getElementById('execStatus');
+    if(action.done){
+      st.className='exec-head__status status--done';
+      st.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>已完成';
+    } else {
+      st.className='exec-head__status status--pending';
+      st.textContent='未完成';
+    }
+  }
+
+  var saveTimer, saving=false;
+  function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(doSave, 350); }
+  function persist(){
+    var p = bkMode ? saveBackfillRecord() : V2.saveAction(today, action);
+    if(p && p.catch) p.catch(function(e){ toastMsg('保存失败：'+((e&&e.message)||'请重试'), true); });
+  }
+  function doSave(){ if(action.done) return; if(bkMode) return; if(saving) return; saving=true; persist(); setTimeout(function(){ saving=false; }, 120); }
+
+  var LB=0.45359237;
+  var UNIT=(function(){ try{ return localStorage.getItem('v2.unit')||'kg'; }catch(e){ return 'kg'; } })();
+  var WT_UNIT=UNIT==='lb'?'lb':'kg';
+  function wtDisplay(kg){ if(kg==null||kg==='') return ''; return UNIT==='lb'?String(Math.round(kg/LB*10)/10):String(kg); }
+  function wtStore(v){ return UNIT==='lb'?Math.round(v*LB*2)/2:v; }
+
+  /* ── 查看模式：显示态组行 ── */
+  function viewSetRowHTML(s, si){
+    var bw = !!s.is_bodyweight;
+    var wVal = wtDisplay(s.weight_kg);
+    var rVal = s.reps!=null ? String(s.reps) : '';
+    var detailHTML = bw
+      ? '<span class="set-view-row__bw">自重</span><span class="set-view-row__reps">'+rVal+'</span><span class="set-view-row__unit">次</span>'
+      : '<span class="set-view-row__weight">'+wVal+'</span><span class="set-view-row__x">×</span><span class="set-view-row__reps">'+rVal+'</span><span class="set-view-row__unit">'+WT_UNIT+'</span>';
+    return '<div class="set-view-row">'+
+      '<span class="set-view-row__idx">'+(si+1)+'</span>'+
+      '<div class="set-view-row__detail">'+detailHTML+'</div>'+
+      '<span class="set-view-row__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>'+
+    '</div>';
+  }
+
+  /* ── 编辑模式：可编辑组行 ── */
+  function setRowHTML(s, si){
+    var bw = !!s.is_bodyweight;
+    var wVal = wtDisplay(s.weight_kg);
+    var rVal = s.reps!=null ? String(s.reps) : '';
+    var ro = readonly();
+    return '<div class="set-row'+(s.done?' is-done':'')+'">'+
+      '<span class="set-row__idx">'+(si+1)+'组</span>'+
+      (ro?'':('<button class="set-row__del" type="button" data-del="'+si+'" aria-label="删除该组"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'))+
+      '<button class="bw-toggle'+(bw?' is-active':'')+'" type="button" data-bw="'+si+'"'+(ro?' disabled':'')+'>自重</button>'+
+      '<input class="set-input" type="text" inputmode="decimal" data-role="weight" data-set="'+si+'" placeholder="重量'+WT_UNIT+'" value="'+wVal+'"'+(bw?' disabled':'')+(ro?' disabled':'')+'>'+
+      '<input class="set-input" type="text" inputmode="numeric" data-role="reps" data-set="'+si+'" placeholder="次数" value="'+rVal+'"'+(ro?' disabled':'')+'>'+
+      '<button class="set-done'+(s.done?' is-checked':'')+'" type="button" data-done="'+si+'"'+(ro?' disabled':'')+' aria-label="标记该组完成">'+
+        '<span class="set-done__circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>'+
+      '</button>'+
+    '</div>';
+  }
+
+  function renderSets(){
+    var isViewMode = readonly();
+    var listEl = document.getElementById('setList');
+    var viewListEl = document.getElementById('setViewList');
+    var addBtn = document.getElementById('addSetBtn');
+
+    listEl.style.display = isViewMode ? 'none' : 'block';
+    viewListEl.style.display = isViewMode ? 'block' : 'none';
+    addBtn.style.display = isViewMode ? 'none' : 'block';
+
+    if(isViewMode){
+      viewListEl.innerHTML = action.sets.length
+        ? action.sets.map(viewSetRowHTML).join('') + '<div class="set-view-all-done"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>共 '+action.sets.length+' 组 · 已全部完成</div>'
+        : '<div class="set-empty">还没有记录组数</div>';
+      return;
+    }
+
+    listEl.innerHTML = action.sets.length
+      ? action.sets.map(setRowHTML).join('')
+      : '<div class="set-empty">还没有记录组数<br/>点下方「添加组」开始</div>';
+
+    listEl.querySelectorAll('[data-del]').forEach(function(b){ b.addEventListener('click', function(){
+      action.sets.splice(Number(b.getAttribute('data-del')),1); renderSets(); updateUI(); scheduleSave();
+    }); });
+    listEl.querySelectorAll('[data-bw]').forEach(function(b){ b.addEventListener('click', function(){
+      var s=action.sets[Number(b.getAttribute('data-bw'))]; s.is_bodyweight=!s.is_bodyweight; if(s.is_bodyweight) s.weight_kg=null; renderSets(); updateUI(); scheduleSave();
+    }); });
+    listEl.querySelectorAll('[data-role="weight"]').forEach(function(inp){ inp.addEventListener('input', function(){
+      var v=normalize(inp.value); if(v!==inp.value) inp.value=v;
+      var s=action.sets[Number(inp.getAttribute('data-set'))]; s.weight_kg = v===''?null:wtStore(Number(v)); if(v!=='') s.is_bodyweight=false;
+      updateUI(); scheduleSave();
+    }); });
+    listEl.querySelectorAll('[data-role="reps"]').forEach(function(inp){ inp.addEventListener('input', function(){
+      var v=normalize(inp.value); if(v!==inp.value) inp.value=v;
+      var s=action.sets[Number(inp.getAttribute('data-set'))]; s.reps = v===''?null:Number(v); updateUI(); scheduleSave();
+    }); });
+    listEl.querySelectorAll('[data-done]').forEach(function(b){ b.addEventListener('click', function(){
+      var si=Number(b.getAttribute('data-done'));
+      var s=action.sets[si]; s.done=!s.done;
+      if(s.done && !action.first_set_ts) action.first_set_ts=Date.now();
+      b.classList.toggle('is-checked', s.done);
+      if(b.closest('.set-row')) b.closest('.set-row').classList.toggle('is-done', s.done);
+      updateUI(); scheduleSave();
+    }); });
+  }
+  function normalize(raw){
+    return String(raw).replace(/[。．｡]/g,'.').replace(/[０-９]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0xFEE0); });
+  }
+  function doneCount(){ return action.sets.filter(function(s){return s.done;}).length; }
+  function updateUI(){
+    var sets=action.sets, dc=doneCount();
+    var hint='组数 · 重量 · 次数';
+    if(sets.length){
+      hint = (dc<sets.length) ? (dc+' / '+sets.length+' 组已完成') : ('共 '+sets.length+' 组 · 已全部完成');
+    }
+    document.getElementById('setHint').textContent = hint;
+    updateFinishSlot();
+  }
+  document.getElementById('addSetBtn').addEventListener('click', function(){
+    if(readonly()) return;
+    var prev=action.sets[action.sets.length-1];
+    action.sets.push(prev ? {weight_kg:prev.weight_kg,is_bodyweight:!!prev.is_bodyweight,reps:prev.reps,done:false} : {weight_kg:null,is_bodyweight:false,reps:null,done:false});
+    renderSets(); updateUI(); scheduleSave();
+  });
+
+  /* ── 有氧：查看/编辑模式切换 ── */
+  function renderCardio(){
+    var isViewMode = readonly();
+    document.getElementById('cardioView').style.display = isViewMode ? 'flex' : 'none';
+    document.getElementById('cardioEdit').style.display = isViewMode ? 'none' : 'flex';
+    document.getElementById('cardioViewNum').textContent = action.duration || 30;
+    document.getElementById('durValue').textContent = action.duration || 30;
+    var ro=readonly();
+    document.getElementById('durMinus').disabled=ro;
+    document.getElementById('durPlus').disabled=ro;
+  }
+  document.getElementById('durMinus').addEventListener('click', function(){ if(readonly()) return; action.duration=Math.max(15,(action.duration||30)-5); renderCardio(); scheduleSave(); });
+  document.getElementById('durPlus').addEventListener('click', function(){ if(readonly()) return; action.duration=Math.min(120,(action.duration||30)+5); renderCardio(); scheduleSave(); });
+
+  /* ── 体会：查看/编辑模式切换 ── */
+  function renderNotes(){
+    var isViewMode = readonly();
+    var viewText = document.getElementById('noteViewText');
+    var viewEmpty = document.getElementById('noteViewEmpty');
+    var editInput = document.getElementById('notesInput');
+
+    viewText.style.display = isViewMode ? 'block' : 'none';
+    editInput.style.display = isViewMode ? 'none' : 'block';
+
+    if(isViewMode){
+      if(action.notes && action.notes.trim()){
+        viewText.textContent = action.notes;
+        viewText.style.display = 'block';
+        viewEmpty.style.display = 'none';
+      } else {
+        viewText.style.display = 'none';
+        viewEmpty.style.display = 'block';
+      }
+    } else {
+      editInput.value = action.notes || '';
+    }
+  }
+  var notesEl=document.getElementById('notesInput');
+  notesEl.addEventListener('input', function(){ if(readonly()) return; action.notes=this.value; scheduleSave(); });
+
+  /* ── 查看/编辑状态切换 ── */
+  function refreshAll(){
+    renderStatus();
+    renderCardio();
+    renderSets();
+    renderNotes();
+    updateUI();
+    setTitle();
+  }
+  function enterEdit(){ snapshotAction(); editing=true; refreshAll(); }
+  function cancelEdit(){ if(originalSnapshot){ restoreFromSnapshot(); } editing=false; refreshAll(); }
+  function saveEdit(){
+    // 补记/正常都走 persist（后端落库：补记→记录，正常→会话/模板会话）
+    persist();
+    if(action.notes && action.notes.trim()){ notes.push({name:action.name, note:action.notes.trim(), ts:Date.now()}); setNotes(notes); }
+    editing=false;
+    originalSnapshot = null;
+    toastMsg('已保存修改');
+    refreshAll();
+  }
+  function updateFinishSlot(){
+    var slot=document.getElementById('finishSlot');
+    if(action.done){
+      if(editing){
+        slot.innerHTML='<div style="display:flex;gap:10px;width:100%;">'+
+          '<button class="btn-ghost" id="cancelEditBtn" type="button">放弃</button>'+
+          '<button class="btn-primary" id="saveEditBtn" type="button" style="flex:1">保存</button>'+
+        '</div>';
+        document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+        document.getElementById('saveEditBtn').addEventListener('click', saveEdit);
+      } else {
+        slot.innerHTML='<div style="display:flex;gap:10px;width:100%;">'+
+          '<button class="btn-danger-ghost" id="delBtn" type="button">'+
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13"/></svg>'+
+          '删除</button>'+
+          '<button class="btn-primary" id="editBtn" type="button" style="flex:1">编辑</button>'+
+        '</div>';
+        document.getElementById('editBtn').addEventListener('click', enterEdit);
+        document.getElementById('delBtn').addEventListener('click', function(){
+          document.getElementById('delTitle').textContent='删除「'+action.name+'」？';
+          document.getElementById('delModal').setAttribute('data-bk', bkMode?'1':'0');
+          openModal('delScrim','delModal');
+        });
+      }
+      return;
+    }
+    var incomplete = !isCardio && action.sets.length>0 && doneCount()<action.sets.length;
+    slot.innerHTML='<div style="display:flex;gap:10px;width:100%;">'+
+      '<button class="btn-danger-ghost" id="delBtn" type="button">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13"/></svg>'+
+      '删除</button>'+
+      '<button class="btn-primary" id="finishBtn" type="button" style="flex:1"'+(incomplete?' disabled':'')+'>'+(bkMode?'补记':'完成本动作')+'</button>'+
+    '</div>';
+    document.getElementById('finishBtn').addEventListener('click', openFinishModal);
+    document.getElementById('delBtn').addEventListener('click', function(){
+      document.getElementById('delTitle').textContent='删除「'+action.name+'」？';
+      document.getElementById('delModal').setAttribute('data-bk', bkMode?'1':'0');
+      openModal('delScrim','delModal');
+    });
+  }
+  function openFinishModal(){
+    document.getElementById('finishTitle').textContent='完成「'+action.name+'」？';
+    var planIn=document.getElementById('syncPlanRowIn');
+    if(action.src==='tpl'){ planIn.style.display='flex'; }else{ planIn.style.display='none'; document.getElementById('syncPlanIn').checked=false; }
+    openModal('finishScrim','finishModal');
+  }
+  document.getElementById('finishCancel').addEventListener('click', function(){ closeModal('finishScrim','finishModal'); });
+  document.getElementById('finishScrim').addEventListener('click', function(){ closeModal('finishScrim','finishModal'); });
+  document.getElementById('finishConfirm').addEventListener('click', function(){
+    var btn = this; btn.disabled = true;
+    if(bkMode){
+      action.done=true;
+      if(action.notes && action.notes.trim()){ notes.push({name:action.name, note:action.notes.trim(), ts:Date.now()}); setNotes(notes); }
+      saveBackfillRecord().then(function(){
+        closeModal('finishScrim','finishModal');
+        try{ sessionStorage.setItem('v2.toast','已补记：'+action.name); }catch(e){}
+        goBackFromModal();
+      }).catch(function(e){ btn.disabled=false; toastMsg('补记失败：'+((e&&e.message)||'请重试'), true); });
+      return;
+    }
+    var sendCal=document.getElementById('syncCalIn').checked;
+    var syncPlan=document.getElementById('syncPlanIn').checked && action.src==='tpl';
+    action.done=true;
+    action.finish_ts=Date.now();
+    if(!action.first_set_ts){ action.first_set_ts=action.finish_ts; }
+    if(action.notes && action.notes.trim()){ notes.push({name:action.name, note:action.notes.trim(), ts:action.finish_ts}); setNotes(notes); }
+    // 完成动作落库（session→当天会话 / tpl→模板会话）
+    var jobs = [ V2.completeAction(today, action) ];
+    if(syncPlan){ jobs.push(W.syncExerciseToTemplate(action.tid, action.ex, action.sets, action).catch(function(){ return null; })); }
+    Promise.all(jobs).then(function(){
+      if(sendCal){
+        var mins=Math.max(1, Math.round((action.finish_ts-action.first_set_ts)/60000));
+        return W.syncCalendarEvent({
+          title:'训练 · '+(isCardio?'有氧':(action.part||'抗阻'))+' · '+action.name,
+          start:new Date(action.first_set_ts).toISOString(), end:new Date(action.finish_ts).toISOString(),
+          description:(isCardio?'有氧·':(action.part||'抗阻')+'·')+action.name,
+        }).then(function(res){ return !!res.synced; }).catch(function(){ return false; });
+      }
+      return Promise.resolve(false);
+    }).then(function(calOk){
+      closeModal('finishScrim','finishModal');
+      var msg = syncPlan ? '已完成 · 已同步到计划：'+action.name : '已完成：'+action.name;
+      if(sendCal && calOk){ msg='已发送到日历 '+fmtHM(action.first_set_ts)+'–'+fmtHM(action.finish_ts)+'：'+(isCardio?('有氧 · '+action.name+' '+(action.duration||30)+' 分钟'):(action.part+' · '+action.name+' '+action.sets.length+' 组')); }
+      try{ sessionStorage.setItem('v2.toast', msg); }catch(e){}
+      goHome();
+    }).catch(function(e){ btn.disabled=false; toastMsg('完成失败：'+((e&&e.message)||'请重试'), true); });
+  });
+  function pad(n){ return (n<10?'0':'')+n; }
+  function fmtHM(ts){ if(!ts) return '--:--'; var d=new Date(ts); return d.getHours()+':'+pad(d.getMinutes()); }
+
+  document.getElementById('delCancel').addEventListener('click', function(){ closeModal('delScrim','delModal'); });
+  document.getElementById('delScrim').addEventListener('click', function(){ closeModal('delScrim','delModal'); });
+  document.getElementById('delConfirm').addEventListener('click', function(){
+    var isBk = document.getElementById('delModal').getAttribute('data-bk') === '1';
+    var btn = this; btn.disabled = true;
+    if(isBk){
+      var rec = findBackfillRecord();
+      var p = rec ? V2.deleteRecord(rec.id) : Promise.resolve();
+      p.then(function(){
+        closeModal('delScrim','delModal');
+        try{ sessionStorage.setItem('v2.toast','已删除记录：'+action.name); }catch(e){}
+        goBack();
+      }).catch(function(e){ btn.disabled=false; toastMsg('删除失败：'+((e&&e.message)||'请重试'), true); });
+    } else {
+      V2.deleteAction(today, action).then(function(){
+        closeModal('delScrim','delModal');
+        try{ sessionStorage.setItem('v2.toast','已删除动作：'+action.name); }catch(e){}
+        goHome();
+      }).catch(function(e){ btn.disabled=false; toastMsg('删除失败：'+((e&&e.message)||'请重试'), true); });
+    }
+  });
+
+  document.getElementById('backBtn').addEventListener('click', goBack);
+
+  function openModal(s,m){ document.getElementById(s).classList.add('is-open'); document.getElementById(m).classList.add('is-open'); }
+  function closeModal(s,m){ document.getElementById(s).classList.remove('is-open'); document.getElementById(m).classList.remove('is-open'); }
+})();
+</script>
+</body>
+</html>

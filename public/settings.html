@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#18191b" />
+<script>/* EFGH 换肤启动：localStorage v2.skin → html[data-skin]，防首帧闪烁 */
+(function(){var m={heat:'#f7f7f5',fire:'#121214',fresh:'#f3f8f6',efficient:'#f4f6f9'};var s=null;try{s=localStorage.getItem('v2.skin');}catch(e){}
+if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
+
+<title>设置 · 训练（竞训深色 · 皮肤A）</title>
+<style>
+:root {
+  --bg:#18191b; --surface:#232527; --raised:#2c2e31;
+  --fg:#ececec; --muted:#9da1a5; --faint:#767a7e;
+  --border:#35383b; --border-bright:#4a4d51;
+  --accent:#a2d43f; --accent-strong:#86b52e; --on-accent:#1f2517;
+  --ok:#4db06f; --danger:#ea4a4a; --warn:#d9a23f;
+  --cat-res:#d99b3e; --cat-cardio:#3cb8cf;
+  --acc-tint: color-mix(in oklch, var(--accent) 14%, transparent);
+  --shadow-float: 0 18px 44px rgba(0,0,0,.5);
+  --font-display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  --font-mono: "SF Mono",Menlo,ui-monospace,monospace;
+  --safe-top: env(safe-area-inset-top,0px);
+  --safe-bottom: env(safe-area-inset-bottom,0px);
+}
+:root { --body-bg:#0c0d0f; --app-ring:0 0 0 1px rgba(255,255,255,.04); --scrim-bg:rgba(5,6,8,.62); --seg-shadow:0 1px 4px rgba(0,0,0,.35); --ok-text:#07130b; --swatch-ring:0 0 0 1px rgba(255,255,255,.14); }
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;height:100%;}
+body{margin:0;height:100%;background:var(--body-bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;}
+a{color:inherit;text-decoration:none;}
+h1,h2,p{margin:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.stage{min-height:100%;display:flex;justify-content:center;}
+.app{position:relative;width:100%;max-width:430px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--app-ring);}
+
+.topbar{flex:none;display:flex;align-items:center;gap:10px;padding:calc(10px + var(--safe-top)) 16px 12px;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
+.topbar__title{font-family:var(--font-display);font-size:24px;font-weight:700;letter-spacing:-.01em;}
+.topbar__sub{flex:1;text-align:right;font-family:var(--font-mono);font-size:10.5px;color:var(--faint);letter-spacing:.08em;}
+
+.content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 20px 24px;}
+.content::-webkit-scrollbar{width:0;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 16px;}
+.setting-row{display:flex;align-items:center;gap:14px;min-height:72px;border-bottom:1px solid var(--border);}
+.setting-row:last-child{border-bottom:0;}
+.setting-row__icon{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;}
+.setting-row__icon--res{background:color-mix(in oklch,var(--cat-res) 14%,transparent);color:var(--cat-res);}
+.setting-row__icon--cardio{background:color-mix(in oklch,var(--cat-cardio) 14%,transparent);color:var(--cat-cardio);}
+.setting-row__icon--plan{background:var(--acc-tint);color:var(--accent);}
+.setting-row__icon svg{width:19px;height:19px;}
+.setting-row__body{flex:1;min-width:0;}
+.setting-row__name{font-size:16px;font-weight:700;}
+.setting-row__desc{font-size:13px;color:var(--faint);margin-top:2px;}
+.setting-row:hover .setting-row__name{color:var(--accent);transition:color .15s ease;}
+.setting-row__chevron{flex:none;color:var(--faint);}
+.setting-row__chevron svg{width:16px;height:16px;}
+
+.zone{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.12em;margin:30px 2px 14px;}
+.zone:first-of-type{margin-top:4px;}
+
+.pref-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;}
+.pref-info{flex:1;min-width:0;}
+.pref-name{font-size:15px;font-weight:700;}
+.pref-desc{font-size:12px;color:var(--faint);margin-top:3px;line-height:1.5;}
+.segmented{flex:none;display:flex;background:var(--raised);border:1px solid var(--border);border-radius:12px;padding:4px;}
+.segmented button{min-width:76px;min-height:42px;border-radius:9px;color:var(--muted);font-size:14px;font-weight:600;transition:background .15s ease,color .15s ease;}
+.segmented button.is-active{background:var(--bg);color:var(--fg);box-shadow:var(--seg-shadow);}
+
+.skin-note{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);letter-spacing:.06em;margin:10px 2px 0;line-height:1.6;}
+.skin-option{display:flex;align-items:center;gap:12px;min-height:62px;border-bottom:1px solid var(--border);padding:10px 2px 10px 0;cursor:pointer;transition:background .15s ease;}
+.skin-option:last-of-type{border-bottom:0;}
+.skin-option.is-selected{background:var(--acc-tint);padding-inline:10px 2px;border-radius:12px;}
+.skin-swatch{flex:none;width:56px;height:40px;border-radius:9px;border:1px solid var(--border-bright);display:flex;align-items:center;justify-content:center;gap:5px;background:var(--raised);}
+.skin-swatch span{width:14px;height:14px;border-radius:50%;box-shadow:var(--swatch-ring);}
+.skin-info{flex:1;min-width:0;}
+.skin-name{font-size:15px;font-weight:700;display:block;}
+.skin-desc{font-size:12px;color:var(--faint);margin-top:2px;display:block;}
+.skin-check{flex:none;width:20px;height:20px;display:grid;place-items:center;color:transparent;}
+.skin-option.is-selected .skin-check{color:var(--accent);}
+.skin-check svg{width:18px;height:18px;}
+
+.tabbar{flex:none;display:flex;border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);background:var(--bg);}
+.tabbar__btn{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font-size:11px;transition:color .15s ease;}
+.tabbar__btn svg{width:20px;height:20px;}
+.tabbar__btn.is-active{color:var(--accent);}
+
+.toast{position:absolute;left:14px;right:14px;top:calc(var(--safe-top) + 10px);z-index:60;background:var(--raised);border:1px solid var(--border-bright);
+  border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--fg);text-align:center;
+  opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
+.toast.is-in{opacity:1;transform:translateY(0);}
+
+/* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
+html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--cat-res:#a8550b;--cat-cardio:#0e7490;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,27,.14);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,27,.22);}
+html[data-skin="heat"] .ring__num,html[data-skin="heat"] .stat-tile__num,html[data-skin="heat"] .set-view-row__weight,html[data-skin="heat"] .set-view-row__reps,html[data-skin="heat"] .cardio-view__num,html[data-skin="heat"] .stepper__value,html[data-skin="heat"] .cal-cell__num{font-weight:900;}
+html[data-skin="heat"] .ring__num{letter-spacing:-.03em;}
+html[data-skin="fire"]{--bg:#121214;--surface:#1c1e22;--raised:#26282d;--fg:#f4f3f1;--muted:#a9a3a0;--faint:#8b8782;--border:#3c3f45;--border-bright:#55585e;--accent:#ff7024;--accent-strong:#dd4a0d;--on-accent:#1c0f06;--ok:#3ecb72;--danger:#ff5040;--warn:#f8b04a;--cat-res:#f9992e;--cat-cardio:#a9dc4a;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(10,6,2,.62);--body-bg:#0a0b0e;--app-ring:0 0 0 1px rgba(255,255,255,.06);--scrim-bg:rgba(10,6,2,.68);--seg-shadow:0 1px 4px rgba(0,0,0,.35);--ok-text:#07130b;--swatch-ring:0 0 0 1px rgba(255,255,255,.18);}
+html[data-skin="fresh"]{--bg:#f3f8f6;--surface:#ffffff;--raised:#eef3f0;--fg:#1c2321;--muted:#59625f;--faint:#6f7874;--border:#e4e9e6;--border-bright:#cfd7d3;--accent:#26794a;--accent-strong:#1f633b;--on-accent:#ffffff;--ok:#15803c;--danger:#cf4436;--warn:#97660f;--cat-res:#8a6510;--cat-cardio:#1f6f78;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(31,42,38,.12);--body-bg:#dfe8e3;--app-ring:0 0 0 1px rgba(31,42,38,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(31,42,38,.09);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(31,42,38,.16);}
+html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg:#1c2028;--muted:#5a616b;--faint:#717a85;--border:#e3e7ee;--border-bright:#c2cad5;--accent:#3a62d6;--accent-strong:#234aa0;--on-accent:#ffffff;--ok:#2353b8;--danger:#cf4436;--warn:#99630f;--cat-res:#8a5f12;--cat-cardio:#3561ad;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(23,30,40,.12);--body-bg:#e9edf4;--app-ring:0 0 0 1px rgba(23,30,40,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,40,.10);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,40,.16);}
+html[data-skin="efficient"] .action-row,html[data-skin="efficient"] .set-row,html[data-skin="efficient"] .session-ex,html[data-skin="efficient"] .schedule-row,html[data-skin="efficient"] .set-view-row,html[data-skin="efficient"] .setting-row,html[data-skin="efficient"] .plan-row{border-color:color-mix(in oklch,var(--border) 55%,var(--bg) 45%);}
+html[data-skin="efficient"] .topbar,html[data-skin="efficient"] .dock,html[data-skin="efficient"] .bottom-bar,html[data-skin="efficient"] .tabbar,html[data-skin="efficient"] .cal-card,html[data-skin="efficient"] .day-card,html[data-skin="efficient"] .set-card,html[data-skin="efficient"] .note-card,html[data-skin="efficient"] .modal,html[data-skin="efficient"] .sheet,html[data-skin="efficient"] .surface,html[data-skin="efficient"] .card{border-color:color-mix(in oklch,var(--border) 70%,var(--bg) 30%);}
+html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__num,html[data-skin="efficient"] .set-view-row__weight,html[data-skin="efficient"] .set-view-row__reps,html[data-skin="efficient"] .cardio-view__num,html[data-skin="efficient"] .stepper__value,html[data-skin="efficient"] .cal-cell__num{letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+
+</style>
+</head>
+<body data-skin="athletic">
+<div class="stage">
+  <div class="app" data-od-id="settings-page">
+    <header class="topbar" data-od-id="settings-topbar">
+      <div class="topbar__title">设置</div>
+    </header>
+
+    <main class="content">
+      <div class="zone">训练配置</div>
+      <div class="card">
+        <a class="setting-row" href="动作库.html" data-od-id="setting-library">
+          <span class="setting-row__icon setting-row__icon--res"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg></span>
+          <span class="setting-row__body">
+            <span class="setting-row__name">动作库</span>
+            <span class="setting-row__desc">管理抗阻训练的部位与动作</span>
+          </span>
+          <span class="setting-row__chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="setting-row" href="训练模板.html" data-od-id="setting-templates">
+          <span class="setting-row__icon setting-row__icon--cardio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10"/></svg></span>
+          <span class="setting-row__body">
+            <span class="setting-row__name">训练模板</span>
+            <span class="setting-row__desc">管理有氧与抗阻训练模板</span>
+          </span>
+          <span class="setting-row__chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="setting-row" href="训练计划.html" data-od-id="setting-plan">
+          <span class="setting-row__icon setting-row__icon--plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="15" rx="3"/><path d="M4 10h16M8 3.5v3M16 3.5v3M9 14.5l2 2 4-4"/></svg></span>
+          <span class="setting-row__body">
+            <span class="setting-row__name">训练计划</span>
+            <span class="setting-row__desc">设置周一至周日每天的默认训练</span>
+          </span>
+          <span class="setting-row__chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+      </div>
+
+      <div class="zone">训练偏好</div>
+      <div class="card pref" data-od-id="pref-unit">
+        <div class="pref-row">
+          <div class="pref-info">
+            <div class="pref-name">重量单位</div>
+            <div class="pref-desc">全局生效 · 训练执行与模板编辑的输入按此单位显示</div>
+          </div>
+          <div class="segmented" id="unitSeg" data-od-id="unit-seg">
+            <button class="is-active" type="button" data-u="kg">公斤</button>
+            <button type="button" data-u="lb">磅</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone">外观</div>
+      <div class="card skin" data-od-id="skin-select">
+        <div class="skin-option is-selected" data-skin="athletic" data-od-id="skin-athletic">
+          <span class="skin-swatch">
+            <span style="background:#18191b;"></span><span style="background:#a2d43f;"></span><span style="background:#d99b3e;"></span>
+          </span>
+          <span class="skin-info">
+            <span class="skin-name">竞训深色</span>
+            <span class="skin-desc">深夜训练舱 · 伏特青柠</span>
+          </span>
+          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+        </div>
+        <div class="skin-option" data-skin="heat" data-od-id="skin-heat">
+          <span class="skin-swatch">
+            <span style="background:#f7f7f5;"></span><span style="background:#cf4409;"></span><span style="background:#a8550b;"></span>
+          </span>
+          <span class="skin-info">
+            <span class="skin-name">热血高键</span>
+            <span class="skin-desc">炽热日光 · 火焰橙 · 数字主角</span>
+          </span>
+          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+        </div>
+        <div class="skin-option" data-skin="fire" data-od-id="skin-fire">
+          <span class="skin-swatch">
+            <span style="background:#121214;"></span><span style="background:#ff7024;"></span><span style="background:#f9992e;"></span>
+          </span>
+          <span class="skin-info">
+            <span class="skin-name">燃夜竞技场</span>
+            <span class="skin-desc">深夜赛道 · 火焰橙 · 青柠次点缀</span>
+          </span>
+          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+        </div>
+        <div class="skin-option" data-skin="fresh" data-od-id="skin-fresh">
+          <span class="skin-swatch">
+            <span style="background:#f3f8f6;"></span><span style="background:#26794a;"></span><span style="background:#8a6510;"></span>
+          </span>
+          <span class="skin-info">
+            <span class="skin-name">健康轻松</span>
+            <span class="skin-desc">薄荷晨间 · 草木绿 · 疏朗元气</span>
+          </span>
+          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+        </div>
+        <div class="skin-option" data-skin="efficient" data-od-id="skin-efficient">
+          <span class="skin-swatch">
+            <span style="background:#f4f6f9;"></span><span style="background:#3a62d6;"></span><span style="background:#3561ad;"></span>
+          </span>
+          <span class="skin-info">
+            <span class="skin-name">冷静工具</span>
+            <span class="skin-desc">效率控制台 · 科技蓝 · 完成即满格</span>
+          </span>
+          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+        </div>
+<div class="skin-note" data-od-id="skin-note">皮肤即时生效，全 App 页面同步套用；本次选择仅保存于当前设备。</div>
+    </main>
+
+    <nav class="tabbar" data-od-id="tabbar">
+      <a class="tabbar__btn" href="首页.html" data-od-id="tab-today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>今天</a>
+      <a class="tabbar__btn" href="记录.html" data-od-id="tab-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="15" rx="3"/><path d="M4 10h16M8 3.5v3M16 3.5v3"/></svg>记录</a>
+      <a class="tabbar__btn is-active" href="设置.html" data-od-id="tab-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2h3.4l.5 2.3a7 7 0 0 1 1.9 1.1l2.2-.8 1.7 3-1.8 1.5a7.3 7.3 0 0 1 0 2.2l1.8 1.5-1.7 3-2.2-.8a7 7 0 0 1-1.9 1.1l-.5 2.3h-3.4l-.5-2.3a7 7 0 0 1-1.9-1.1l-2.2.8-1.7-3 1.8-1.5a7.3 7.3 0 0 1 0-2.2L4 8.8l1.7-3 2.2.8a7 7 0 0 1 1.9-1.1z"/><circle cx="12" cy="12" r="2.6"/></svg>设置</a>
+    </nav>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var UKEY='v2.unit', SKEY='v2.skin';
+  var unit=(function(){ try{ return localStorage.getItem(UKEY)||'kg'; }catch(e){ return 'kg'; } })();
+  var skin=(function(){ try{ return localStorage.getItem(SKEY)||'athletic'; }catch(e){ return 'athletic'; } })();
+  var SKIN_NAMES={athletic:'竞训深色','heat':'热血高键','fire':'燃夜竞技场','fresh':'健康轻松','efficient':'冷静工具'};
+  var THEME_COLORS={athletic:'#18191b','heat':'#f7f7f5','fire':'#121214','fresh':'#f3f8f6','efficient':'#f4f6f9'};
+  function applySkin(){
+    document.documentElement.setAttribute('data-skin', skin);
+    var meta=document.querySelector('meta[name="theme-color"]');
+    if(meta) meta.setAttribute('content', THEME_COLORS[skin]||'#18191b');
+    renderSkin();
+  }
+  function renderSkin(){
+    document.querySelectorAll('.skin-option').forEach(function(o){ o.classList.toggle('is-selected', o.getAttribute('data-skin')===skin); });
+  }
+  document.querySelectorAll('.skin-option').forEach(function(o){
+    o.addEventListener('click', function(){
+      var v=o.getAttribute('data-skin');
+      if(skin!==v){ skin=v; try{ localStorage.setItem(SKEY,skin); }catch(e){} applySkin(); toastMsg('已切换皮肤：'+SKIN_NAMES[skin]+' · 全局生效'); }
+    });
+  });
+  applySkin();
+  renderUnit();
+  renderSkin();
+})();
+</script>
+</body>
+</html>

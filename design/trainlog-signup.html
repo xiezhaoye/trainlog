@@ -1,0 +1,175 @@
+<!doctype html>
+<!--
+  TrainLog · 砺志 — 注册页
+  只支持邮箱注册：邮箱 → 邮箱验证码 → 设置登录密码 → 注册完成。
+  登录支持「密码」或「验证码」两路（见 login.html）。
+  品牌 token 与首页一致：墨黑底 #121214 · 青柠 #a2d43f · 骨白 #f4f3f1。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#121214" />
+<meta name="description" content="注册 TrainLog 砺志 —— 邮箱注册，开始记录训练。" />
+<title>注册 · TrainLog 砺志</title>
+<link rel="icon" type="image/svg+xml" href="logo/favicon-clear.svg" />
+<link rel="apple-touch-icon" sizes="180x180" href="logo/apple-touch-icon.png" />
+<link rel="manifest" href="site.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#121214; --surface:#1c1e22; --raised:#26292e;
+    --fg:#f4f3f1; --muted:#a9a3a0; --faint:#8b8782;
+    --line:#26292e; --line-2:#3a3e45;
+    --accent:#a2d43f;
+    --ant:"Anton","Impact","Arial Black","Avenir Next Condensed",-apple-system,sans-serif;
+    --display:"Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+    --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+    --mono:"SF Mono",Menlo,ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;-webkit-font-smoothing:antialiased;}
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;text-decoration:none;}
+  h1,h2,p{margin:0;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .wrap{width:100%;max-width:1120px;margin-inline:auto;padding-inline:20px;}
+
+  /* 顶栏 */
+  header{display:flex;align-items:center;justify-content:space-between;padding-block:18px;}
+  .logo{display:inline-flex;align-items:center;gap:11px;}
+  .logo svg{width:30px;height:30px;}
+  .logo .name{font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:.02em;}
+  .logo .name .cn{color:var(--muted);margin-left:8px;font-weight:600;}
+
+  main{flex:1;display:flex;align-items:center;}
+  .auth{width:100%;max-width:440px;margin-inline:auto;padding-block:clamp(36px,6vh,72px);}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:34px 30px 30px;}
+  .card .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
+  .card h1{font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:-.01em;margin-top:8px;}
+  .card .sub{color:var(--faint);font-size:13.5px;line-height:1.6;margin-top:8px;}
+
+  /* 表单 */
+  form{display:flex;flex-direction:column;gap:18px;margin-top:26px;}
+  .field{display:flex;flex-direction:column;gap:8px;}
+  .field label{font-size:13px;color:var(--muted);}
+  .input{width:100%;min-height:50px;background:var(--bg);border:1px solid var(--line-2);border-radius:11px;
+    padding:0 14px;color:var(--fg);font:inherit;font-size:15px;transition:border-color .15s ease;}
+  .input::placeholder{color:var(--faint);}
+  .input:focus{outline:none;border-color:var(--accent);}
+  .row{display:flex;gap:12px;}
+  .row .input{flex:1;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;
+    border-radius:13px;border:1px solid transparent;font-family:var(--body);font-size:16px;font-weight:600;
+    cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease,opacity .15s ease;}
+  .btn-primary{background:var(--accent);color:var(--bg);}
+  .btn-primary:hover{background:color-mix(in oklch,var(--accent) 90%,white);}
+  .btn-primary:disabled{background:var(--line-2);color:var(--faint);cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--fg);border-color:var(--line-2);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-sm{min-height:50px;padding:0 16px;font-size:14px;border-radius:11px;flex:none;white-space:nowrap;}
+  .btn-sm:disabled{opacity:.45;cursor:not-allowed;}
+  .hint{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint);line-height:1.7;}
+  .err{font-family:var(--body);font-size:12.5px;color:#ff6b5b;min-height:18px;line-height:1.5;}
+  .done{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.04em;text-align:center;margin-top:6px;}
+
+  .foot{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;font-size:13.5px;color:var(--faint);}
+  .foot a{color:var(--accent);font-weight:600;}
+  .foot a:hover{text-decoration:underline;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header data-od-id="topnav">
+      <a class="logo" href="/" aria-label="TrainLog 砺志 · 首页">
+        <svg viewBox="0 0 256 256" fill="none" aria-hidden="true">
+          <circle cx="128" cy="128" r="74" stroke="#f4f3f1" stroke-width="20"/>
+          <circle cx="128" cy="128" r="74" stroke="#a2d43f" stroke-width="20" stroke-dasharray="310 125" stroke-linecap="round" transform="rotate(-90 128 128)"/>
+          <path d="M104 130 L122 148 L156 110" stroke="#f4f3f1" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="name">TrainLog<span class="cn">砺志</span></span>
+      </a>
+    </header>
+
+    <main>
+      <section class="auth" data-od-id="signup-auth">
+        <div class="card">
+          <p class="eyebrow">TrainLog · Sign up</p>
+          <h1>注册</h1>
+          <p class="sub">使用邮箱注册。注册完成后即可直接开始记录训练。</p>
+          <form id="signupForm" novalidate>
+            <div class="field">
+              <label for="email">邮箱</label>
+              <input class="input" id="email" type="email" inputmode="email" autocomplete="email"
+                     placeholder="you@example.com" required data-od-id="signup-email" />
+            </div>
+            <div class="field">
+              <label for="code">邮箱验证码</label>
+              <div class="row">
+                <input class="input" id="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+                       placeholder="6 位验证码" maxlength="6" data-od-id="signup-code" />
+                <button class="btn btn-ghost btn-sm" id="sendCode" type="button" data-od-id="signup-send-code">发送验证码</button>
+              </div>
+              <p class="hint" id="codeHint" style="display:none;">验证码已发送至邮箱，5 分钟内有效</p>
+            </div>
+            <div class="field">
+              <label for="password">登录密码</label>
+              <input class="input" id="password" type="password" autocomplete="new-password"
+                     placeholder="至少 8 位" minlength="8" data-od-id="signup-password" />
+              <p class="hint">登录时可使用密码或验证码（≥8 位）</p>
+            </div>
+            <p class="err" id="err" role="alert"></p>
+            <button class="btn btn-primary" id="submit" type="submit" data-od-id="signup-submit">注册</button>
+            <p class="done" id="done" style="display:none;"></p>
+          </form>
+        </div>
+        <div class="foot"><span>已有账号？</span><a href="/login" data-od-id="to-login">直接登录</a></div>
+      </section>
+    </main>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+  var form=document.getElementById('signupForm');
+  var email=document.getElementById('email'), code=document.getElementById('code');
+  var pw=document.getElementById('password');
+  var sendBtn=document.getElementById('sendCode'), errEl=document.getElementById('err');
+  var doneEl=document.getElementById('done'), hint=document.getElementById('codeHint');
+  var timer=null, sent=false;
+
+  function okEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+  function showErr(m){ errEl.textContent=m||''; }
+  function setSend(seconds){
+    sendBtn.disabled=seconds>0;
+    sendBtn.textContent=seconds>0?('重新发送 '+seconds+'s'):'发送验证码';
+  }
+  /* 演示：发送验证码 → 60s 倒计时；真实实现由后端发 OTP */
+  sendBtn.addEventListener('click', function(){
+    if(!okEmail(email.value)){ showErr('请输入有效的邮箱地址'); email.focus(); return; }
+    sent=true; hint.style.display='block'; showErr('');
+    var s=60; setSend(s);
+    clearInterval(timer);
+    timer=setInterval(function(){ s--; if(s<=0){ clearInterval(timer); setSend(0); } else setSend(s); },1000);
+  });
+  pw.addEventListener('input', function(){ if(!sent) return; });
+
+  form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    showErr('');
+    if(!okEmail(email.value)){ showErr('请输入有效的邮箱地址'); email.focus(); return false; }
+    if(!sent || code.value.length<6){ showErr('请先获取并输入 6 位邮箱验证码'); return false; }
+    if(pw.value.length<8){ showErr('登录密码至少 8 位'); pw.focus(); return false; }
+    /* 演示提交：正常即显示成功（真实实现 POST /api/auth/signup） */
+    document.getElementById('submit').disabled=true;
+    doneEl.style.display='block';
+    doneEl.textContent='注册成功 · 已自动登录，开始记录训练 →';
+    hint.style.display='none';
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<!--
+  TrainLog · 砺志 — 极简首页（单页）
+  重点 slogan：Log your train, shape your life.（大） / 记录训练，雕琢自我。（小）
+  品牌：概念B 收满圆环 · 墨黑 #121214 + 伏特青柠 #a2d43f + 骨白 #f4f3f1 · condensed display。
+  按钮：注册 / 登录（邮箱 OTP）。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#121214" />
+<meta name="description" content="TrainLog 砺志 —— 记录训练，雕琢自我。" />
+<title>TrainLog · 砺志 — 记录训练，雕琢自我</title>
+<link rel="icon" type="image/svg+xml" href="logo/favicon-clear.svg" />
+<link rel="apple-touch-icon" sizes="180x180" href="logo/apple-touch-icon.png" />
+<link rel="manifest" href="site.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:      #121214;
+    --line:    #26292e;
+    --fg:      #f4f3f1;
+    --muted:   #a9a3a0;
+    --accent:  #a2d43f;
+    --font-ant: "Anton","Impact","Arial Black","Avenir Next Condensed",-apple-system,sans-serif;
+    --display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+    --body:    -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+    --mono:    "SF Mono",Menlo,ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;min-height:100dvh;display:flex;flex-direction:column;
+    background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;text-decoration:none;}
+  h1,p{margin:0;}
+  .wrap{width:100%;max-width:1120px;margin-inline:auto;padding-inline:20px;}
+
+  /* 顶栏 */
+  header{display:flex;align-items:center;justify-content:space-between;padding-block:18px;}
+  .logo{display:inline-flex;align-items:center;gap:11px;}
+  .logo svg{width:30px;height:30px;}
+  .logo .name{font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:.02em;}
+  .logo .name .cn{color:var(--muted);margin-left:8px;font-weight:600;}
+  .actions{display:flex;align-items:center;gap:12px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 22px;
+    border-radius:11px;font-family:var(--body);font-size:15px;font-weight:600;
+    transition:background .15s ease,color .15s ease;}
+  .btn-ghost{color:var(--muted);}
+  .btn-ghost:hover{color:var(--fg);}
+  .btn-primary{background:var(--accent);color:var(--bg);}
+  .btn-primary:hover{background:color-mix(in oklch,var(--accent) 90%,white);}
+
+  /* Hero — slogan 主导屏面 */
+  main{flex:1;display:flex;align-items:center;}
+  .hero{width:100%;padding-block:clamp(48px,8vh,104px);}
+  .center{width:100%;max-width:1080px;margin-inline:auto;text-align:center;}
+  .ring{margin:0 auto clamp(18px,3vh,30px);}
+  .ring svg{width:clamp(56px,9vw,92px);height:auto;margin-inline:auto;}
+  .slogan-en{
+    font-family:var(--font-ant);font-weight:400;color:var(--fg);
+    font-size:clamp(40px,10.5vw,120px);
+    line-height:.98;letter-spacing:.005em;margin:0;
+  }
+  .slogan-en .l1{display:block;}
+  .slogan-en .l2{display:block;color:var(--accent);}
+  .slogan-zh{
+    font-family:var(--display);font-weight:700;color:var(--muted);
+    font-size:clamp(22px,3.4vw,40px);
+    line-height:1.1;letter-spacing:.03em;white-space:nowrap;margin-top:20px;
+  }
+
+  /* 按钮：两行纵向，加宽 */
+  .cta{margin-top:clamp(34px,6vh,56px);display:flex;flex-direction:column;align-items:center;gap:16px;}
+  .cta .primary{
+    width:min(360px,84vw);min-height:58px;padding:0 40px;border-radius:14px;font-size:17px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header data-od-id="topnav">
+      <a class="logo" href="/" aria-label="TrainLog 砺志 · 首页">
+        <svg viewBox="0 0 256 256" fill="none" aria-hidden="true">
+          <circle cx="128" cy="128" r="74" stroke="#f4f3f1" stroke-width="20"/>
+          <circle cx="128" cy="128" r="74" stroke="#a2d43f" stroke-width="20" stroke-dasharray="310 125" stroke-linecap="round" transform="rotate(-90 128 128)"/>
+          <path d="M104 130 L122 148 L156 110" stroke="#f4f3f1" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="name">TrainLog<span class="cn">砺志</span></span>
+      </a>
+      <nav class="actions" aria-label="账号" data-od-id="nav">
+        <a class="btn btn-ghost" href="/login" data-od-id="nav-login">登录</a>
+        <a class="btn btn-primary" href="/signup" data-od-id="nav-signup">注册</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" data-od-id="hero">
+        <div class="center">
+          <div class="ring" aria-hidden="true">
+            <svg viewBox="0 0 256 256" fill="none">
+              <circle cx="128" cy="128" r="90" stroke="#2c2f34" stroke-width="16"/>
+              <circle cx="128" cy="128" r="90" stroke="#a2d43f" stroke-width="16"
+                      stroke-dasharray="380 186" stroke-linecap="round" transform="rotate(-90 128 128)"/>
+              <path d="M102 132 L121 151 L158 111" stroke="#f4f3f1" stroke-width="15"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1 class="slogan-en" data-od-id="slogan-en">
+            <span class="l1">Log your train,</span>
+            <span class="l2">shape your life.</span>
+          </h1>
+          <p class="slogan-zh" data-od-id="slogan-zh">记录训练，雕琢自我。</p>
+          <div class="cta">
+            <a class="btn btn-primary primary" href="/signup" data-od-id="hero-signup">注册</a>
+            <a class="btn btn-ghost primary" href="/login" data-od-id="hero-login">登录</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

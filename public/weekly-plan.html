@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#18191b" />
+<script>/* EFGH 换肤启动：localStorage v2.skin → html[data-skin]，防首帧闪烁 */
+(function(){var m={heat:'#f7f7f5',fire:'#121214',fresh:'#f3f8f6',efficient:'#f4f6f9'};var s=null;try{s=localStorage.getItem('v2.skin');}catch(e){}
+if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
+
+<title>训练计划 · 训练（竞训深色 · 皮肤A）</title>
+<style>
+:root {
+  --bg:#18191b; --surface:#232527; --raised:#2c2e31;
+  --fg:#ececec; --muted:#9da1a5; --faint:#767a7e;
+  --border:#35383b; --border-bright:#4a4d51;
+  --accent:#a2d43f; --accent-strong:#86b52e; --on-accent:#1f2517;
+  --ok:#4db06f; --danger:#ea4a4a; --warn:#d9a23f;
+  --cat-res:#d99b3e; --cat-cardio:#3cb8cf;
+  --acc-tint: color-mix(in oklch, var(--accent) 14%, transparent);
+  --shadow-float: 0 18px 44px rgba(0,0,0,.5);
+  --font-display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  --font-mono: "SF Mono",Menlo,ui-monospace,monospace;
+  --safe-top: env(safe-area-inset-top,0px);
+  --safe-bottom: env(safe-area-inset-bottom,0px);
+}
+:root { --body-bg:#0c0d0f; --app-ring:0 0 0 1px rgba(255,255,255,.04); --scrim-bg:rgba(5,6,8,.62); --seg-shadow:0 1px 4px rgba(0,0,0,.35); --ok-text:#07130b; --swatch-ring:0 0 0 1px rgba(255,255,255,.14); }
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;height:100%;}
+body{margin:0;height:100%;background:var(--body-bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-touch-callout:none;}
+a{color:inherit;text-decoration:none;}
+h1,h2,h3,p{margin:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.stage{min-height:100%;display:flex;justify-content:center;}
+.app{position:relative;width:100%;max-width:430px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--app-ring);}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(8px + var(--safe-top)) 12px 10px;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
+.topbar__title{font-size:17px;font-weight:700;text-align:center;flex:1;}
+.topbar__side{width:76px;}
+.back-chip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);font-size:15px;}
+
+.back-chip svg{width:16px;height:16px;}
+
+.content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 20px 24px;}
+.content::-webkit-scrollbar{width:0;}
+
+.hint{font-size:13px;color:var(--faint);line-height:1.6;margin:2px 2px 14px;}
+.segmented{display:flex;background:var(--raised);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:16px;}
+.segmented button{flex:1;min-height:44px;border-radius:9px;color:var(--muted);font-size:14px;font-weight:600;transition:background .15s ease,color .15s ease;}
+.segmented button.is-active{background:var(--bg);color:var(--fg);box-shadow:var(--seg-shadow);}
+.unit-legend{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);letter-spacing:.08em;margin:-8px 2px 16px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 16px;}
+.plan-row{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
+.plan-row:last-child{border-bottom:0;}
+.plan-row__label{flex:none;width:42px;font-size:14px;font-weight:600;padding-top:9px;}
+.plan-row__chips{flex:1;display:flex;flex-wrap:wrap;gap:8px;min-width:0;}
+.plan-chip{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 6px 0 14px;border-radius:10px;background:var(--acc-tint);border:1px solid var(--accent);color:var(--accent);font-size:14px;font-weight:600;}
+.plan-chip__del{width:28px;height:28px;display:grid;place-items:center;color:var(--accent);border-radius:8px;}
+.plan-chip__del:hover{color:var(--danger);}
+.plan-rest{font-size:13px;color:var(--faint);padding-top:10px;}
+.chip-add-btn{min-height:36px;padding:0 12px;border-radius:10px;display:inline-flex;align-items:center;gap:4px;border:1px dashed var(--border-bright);color:var(--muted);font-size:14px;}
+.chip-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.chip-add-btn svg{width:14px;height:14px;}
+
+.plan-bar{flex:none;display:flex;gap:10px;padding:10px 20px 8px;border-top:1px solid var(--border);background:var(--bg);}
+.btn-primary{flex:1;min-height:50px;border-radius:13px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:800;}
+.btn-primary:hover{background:var(--accent-strong);}
+.btn-ghost-big{flex:1;min-height:50px;border-radius:13px;border:1px solid var(--border-bright);color:var(--fg);font-size:15px;font-weight:700;}
+.btn-ghost-big:hover{border-color:var(--accent);color:var(--accent);}
+
+.tabbar{flex:none;display:flex;border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);background:var(--bg);}
+.tabbar__btn{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font-size:11px;transition:color .15s ease;}
+.tabbar__btn svg{width:20px;height:20px;}
+.tabbar__btn.is-active{color:var(--accent);}
+
+/* 选模板 sheet */
+.scrim{position:absolute;inset:0;z-index:40;background:var(--scrim-bg);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.scrim.is-open{opacity:1;pointer-events:auto;}
+.surface{background:var(--surface);border:1px solid var(--border);border-radius:16px;}
+.sheet{display:flex;flex-direction:column;max-height:82%;}
+.sheet__grab{width:36px;height:4px;border-radius:99px;background:var(--border-bright);margin:10px auto 4px;}
+.sheet__head{display:flex;align-items:center;justify-content:space-between;padding:2px 16px 8px;}
+.sheet__title{font-size:17px;font-weight:700;}
+.sheet__close{width:44px;height:44px;display:grid;place-items:center;color:var(--muted);border-radius:12px;}
+.sheet__close:hover{color:var(--fg);}
+.sheet__body{flex:1;min-height:0;overflow-y:auto;padding:4px 20px 20px;-webkit-overflow-scrolling:touch;}
+.sheet__group-label{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.12em;margin:14px 2px 8px;}
+.pick-card{width:100%;display:flex;align-items:center;gap:12px;min-height:58px;padding:9px 2px;border-top:1px solid var(--border);background:none;text-align:left;}
+.pick-card:first-of-type{border-top:0;}
+.pick-card:hover .pick-card__name{color:var(--accent);transition:color .15s ease;}
+.tag{flex:none;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;padding:6px 8px;border-radius:8px;line-height:1;}
+.tag--res{background:color-mix(in oklch,var(--cat-res) 16%,transparent);color:var(--cat-res);}
+.tag--cardio{background:color-mix(in oklch,var(--cat-cardio) 16%,transparent);color:var(--cat-cardio);}
+.pick-card__body{flex:1;min-width:0;}
+.pick-card__name{font-size:15px;font-weight:600;}
+.pick-card__summary{font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-top:2px;}
+.pick-card__plus{flex:none;color:var(--accent);}
+.pick-card__plus svg{width:18px;height:18px;}
+.empty-hint{font-family:var(--font-mono);font-size:12px;color:var(--faint);text-align:center;padding:26px 0;letter-spacing:.06em;}
+
+.toast{position:absolute;left:14px;right:14px;top:calc(var(--safe-top) + 10px);z-index:60;background:var(--raised);border:1px solid var(--border-bright);
+  border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--fg);text-align:center;
+  opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
+.toast.is-in{opacity:1;transform:translateY(0);}
+.toast.is-err{border-color:var(--danger);color:var(--danger);}
+
+/* sheet 容器：绝对定位在 app 内 */
+.sheet-box{position:absolute;left:0;right:0;bottom:0;z-index:41;border-radius:20px 20px 0 0;background:var(--surface);box-shadow:var(--shadow-float);transform:translateY(100%);transition:transform .24s cubic-bezier(.2,.8,.2,1);}
+.sheet-box.is-open{transform:translateY(0);}
+
+/* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
+html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--cat-res:#a8550b;--cat-cardio:#0e7490;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,27,.14);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,27,.22);}
+html[data-skin="heat"] .ring__num,html[data-skin="heat"] .stat-tile__num,html[data-skin="heat"] .set-view-row__weight,html[data-skin="heat"] .set-view-row__reps,html[data-skin="heat"] .cardio-view__num,html[data-skin="heat"] .stepper__value,html[data-skin="heat"] .cal-cell__num{font-weight:900;}
+html[data-skin="heat"] .ring__num{letter-spacing:-.03em;}
+html[data-skin="fire"]{--bg:#121214;--surface:#1c1e22;--raised:#26282d;--fg:#f4f3f1;--muted:#a9a3a0;--faint:#8b8782;--border:#3c3f45;--border-bright:#55585e;--accent:#ff7024;--accent-strong:#dd4a0d;--on-accent:#1c0f06;--ok:#3ecb72;--danger:#ff5040;--warn:#f8b04a;--cat-res:#f9992e;--cat-cardio:#a9dc4a;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(10,6,2,.62);--body-bg:#0a0b0e;--app-ring:0 0 0 1px rgba(255,255,255,.06);--scrim-bg:rgba(10,6,2,.68);--seg-shadow:0 1px 4px rgba(0,0,0,.35);--ok-text:#07130b;--swatch-ring:0 0 0 1px rgba(255,255,255,.18);}
+html[data-skin="fresh"]{--bg:#f3f8f6;--surface:#ffffff;--raised:#eef3f0;--fg:#1c2321;--muted:#59625f;--faint:#6f7874;--border:#e4e9e6;--border-bright:#cfd7d3;--accent:#26794a;--accent-strong:#1f633b;--on-accent:#ffffff;--ok:#15803c;--danger:#cf4436;--warn:#97660f;--cat-res:#8a6510;--cat-cardio:#1f6f78;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(31,42,38,.12);--body-bg:#dfe8e3;--app-ring:0 0 0 1px rgba(31,42,38,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(31,42,38,.09);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(31,42,38,.16);}
+html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg:#1c2028;--muted:#5a616b;--faint:#717a85;--border:#e3e7ee;--border-bright:#c2cad5;--accent:#3a62d6;--accent-strong:#234aa0;--on-accent:#ffffff;--ok:#2353b8;--danger:#cf4436;--warn:#99630f;--cat-res:#8a5f12;--cat-cardio:#3561ad;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(23,30,40,.12);--body-bg:#e9edf4;--app-ring:0 0 0 1px rgba(23,30,40,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,40,.10);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,40,.16);}
+html[data-skin="efficient"] .action-row,html[data-skin="efficient"] .set-row,html[data-skin="efficient"] .session-ex,html[data-skin="efficient"] .schedule-row,html[data-skin="efficient"] .set-view-row,html[data-skin="efficient"] .setting-row,html[data-skin="efficient"] .plan-row{border-color:color-mix(in oklch,var(--border) 55%,var(--bg) 45%);}
+html[data-skin="efficient"] .topbar,html[data-skin="efficient"] .dock,html[data-skin="efficient"] .bottom-bar,html[data-skin="efficient"] .tabbar,html[data-skin="efficient"] .cal-card,html[data-skin="efficient"] .day-card,html[data-skin="efficient"] .set-card,html[data-skin="efficient"] .note-card,html[data-skin="efficient"] .modal,html[data-skin="efficient"] .sheet,html[data-skin="efficient"] .surface,html[data-skin="efficient"] .card{border-color:color-mix(in oklch,var(--border) 70%,var(--bg) 30%);}
+html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__num,html[data-skin="efficient"] .set-view-row__weight,html[data-skin="efficient"] .set-view-row__reps,html[data-skin="efficient"] .cardio-view__num,html[data-skin="efficient"] .stepper__value,html[data-skin="efficient"] .cal-cell__num{letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+
+</style>
+</head>
+<body data-skin="athletic">
+<div class="stage">
+  <div class="app" data-od-id="plan-page">
+    <header class="topbar" data-od-id="plan-topbar">
+      <a class="back-chip" href="设置.html" data-od-id="plan-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        返回
+      </a>
+      <div class="topbar__title">训练计划</div>
+      <div class="topbar__side"></div>
+    </header>
+
+    <main class="content">
+      <div class="hint">为周一至周日设置默认训练模板，一天可安排多次；保存后从今天起生效（版本化，不影响历史日期）。</div>
+      <div class="card" id="planList" data-od-id="plan-list"></div>
+    </main>
+
+    <div class="plan-bar" data-od-id="plan-actionbar">
+      <button class="btn-ghost-big" id="discardPlanBtn" type="button" data-od-id="discard-plan-btn">放弃</button>
+      <button class="btn-primary" id="savePlanBtn" type="button" data-od-id="save-plan-btn">保存</button>
+    </div>
+
+    <nav class="tabbar" data-od-id="tabbar">
+      <a class="tabbar__btn" href="首页.html" data-od-id="tab-today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>今天</a>
+      <a class="tabbar__btn" href="记录.html" data-od-id="tab-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="15" rx="3"/><path d="M4 10h16M8 3.5v3M16 3.5v3"/></svg>记录</a>
+      <a class="tabbar__btn is-active" href="设置.html" data-od-id="tab-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2h3.4l.5 2.3a7 7 0 0 1 1.9 1.1l2.2-.8 1.7 3-1.8 1.5a7.3 7.3 0 0 1 0 2.2l1.8 1.5-1.7 3-2.2-.8a7 7 0 0 1-1.9 1.1l-.5 2.3h-3.4l-.5-2.3a7 7 0 0 1-1.9-1.1l-2.2.8-1.7-3 1.8-1.5a7.3 7.3 0 0 1 0-2.2L4 8.8l1.7-3 2.2.8a7 7 0 0 1 1.9-1.1z"/><circle cx="12" cy="12" r="2.6"/></svg>设置</a>
+    </nav>
+
+    <!-- 选模板 sheet -->
+    <div class="scrim" id="pickScrim" role="dialog" aria-modal="true" aria-label="添加训练模板"></div>
+    <div class="sheet-box" id="pickSheet" data-od-id="plan-pick-sheet">
+      <div class="sheet__grab"></div>
+      <div class="sheet__head">
+        <div class="sheet__title" id="pickTitle">添加训练模板</div>
+        <button class="sheet__close" id="pickClose" type="button" aria-label="关闭"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div class="sheet__body" id="pickBody"></div>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<script src="/config.js"></script>
+<script src="assets/app.js"></script>
+<script src="v2-bridge.js"></script>
+<script>
+(function(){
+  'use strict';
+  var WEEKDAY_KEYS=['mon','tue','wed','thu','fri','sat','sun'];
+  var WEEKDAY_LABELS=['周一','周二','周三','周四','周五','周六','周日'];
+  // 数据来自真实后端：模板 / 周计划由 V2（v2-bridge.js → window.Workout）提供，
+  // 等 V2.ready 就绪后填充（见文件底部 V2.ready.then）。
+  var templates=[];
+  var plan={};
+  var draft={};
+
+  var toast=document.getElementById('toast'), toastTimer;
+  function toastMsg(msg,isErr){
+    toast.textContent=msg;
+    toast.classList.toggle('is-err',!!isErr);
+    toast.classList.add('is-in');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
+  }
+
+  function summary(t){
+    return t.type==='cardio'
+      ? [t.action, t.speed?t.speed+'km/h':null, (t.duration||30)+'分钟'].filter(Boolean).join(' · ')
+      : (t.parts||[]).join('/')+' · '+(t.exercises||[]).length+'个动作';
+  }
+  function renderPlan(){
+    var box=document.getElementById('planList');
+    box.innerHTML=WEEKDAY_KEYS.map(function(key,i){
+      var ids=draft[key]||[];
+      var chips=ids.map(function(tid,ci){
+        var t=templates.filter(function(x){return x.id===tid;})[0];
+        return '<span class="plan-chip" data-day="'+key+'">'+(t?t.name:'已删除的模板')+
+          '<button class="plan-chip__del" data-role="del-plan" data-day="'+key+'" data-idx="'+ci+'" aria-label="移除"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+
+        '</span>';
+      }).join('');
+      var rest=ids.length?'':'<span class="plan-rest">休息日</span>';
+      return '<div class="plan-row" data-od-id="plan-row-'+key+'">'+
+        '<span class="plan-row__label">'+WEEKDAY_LABELS[i]+'</span>'+
+        '<div class="plan-row__chips">'+chips+rest+'<button class="chip-add-btn" data-day="'+key+'" type="button" aria-label="添加训练"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>添加</button></div>'+
+      '</div>';
+    }).join('');
+    box.querySelectorAll('[data-role="del-plan"]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var key=b.getAttribute('data-day'), idx=Number(b.getAttribute('data-idx'));
+        draft[key].splice(idx,1); renderPlan();
+      });
+    });
+    box.querySelectorAll('.chip-add-btn').forEach(function(b){
+      b.addEventListener('click', function(){ openPick(b.getAttribute('data-day')); });
+    });
+  }
+  function openPick(day){
+    var ids=draft[day]||[];
+    var avail=templates.filter(function(t){ return ids.indexOf(t.id)===-1; });
+    var cardio=avail.filter(function(t){return t.type==='cardio';});
+    var res=avail.filter(function(t){return t.type==='resistance';});
+    document.getElementById('pickTitle').textContent='添加训练模板 · '+WEEKDAY_LABELS[WEEKDAY_KEYS.indexOf(day)];
+    var html='';
+    if(cardio.length) html+='<div class="sheet__group-label">有氧</div>'+cardio.map(pickHTML).join('');
+    if(res.length) html+='<div class="sheet__group-label">抗阻</div>'+res.map(pickHTML).join('');
+    if(!html) html='<div class="empty-hint">没有更多可添加的模板了<br/>先去「训练模板」新建</div>';
+    var body=document.getElementById('pickBody');
+    body.innerHTML=html;
+    body.querySelectorAll('[data-pick]').forEach(function(el){
+      el.addEventListener('click', function(){
+        draft[day].push(el.getAttribute('data-pick'));
+        closeSheet('pickScrim','pickSheet');
+        renderPlan();
+      });
+    });
+    openSheet('pickScrim','pickSheet');
+  }
+  function pickHTML(t){
+    return '<button class="pick-card" data-pick="'+t.id+'" data-od-id="plan-pick-'+t.id+'">'+
+      '<span class="tag '+(t.type==='cardio'?'tag--cardio':'tag--res')+'">'+(t.type==='cardio'?'有氧':'抗阻')+'</span>'+
+      '<span class="pick-card__body"><span class="pick-card__name">'+t.name+'</span><span class="pick-card__summary">'+summary(t)+'</span></span>'+
+      '<span class="pick-card__plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>'+
+    '</button>';
+  }
+  function openSheet(s,m){ document.getElementById(s).classList.add('is-open'); document.getElementById(m).classList.add('is-open'); }
+  function closeSheet(s,m){ document.getElementById(s).classList.remove('is-open'); document.getElementById(m).classList.remove('is-open'); }
+  document.getElementById('pickClose').addEventListener('click', function(){ closeSheet('pickScrim','pickSheet'); });
+  document.getElementById('pickScrim').addEventListener('click', function(){ closeSheet('pickScrim','pickSheet'); });
+
+  document.getElementById('savePlanBtn').addEventListener('click', function(){
+    var out={};
+    WEEKDAY_KEYS.forEach(function(k){ out[k]=(draft[k]||[]).filter(function(x){return x;}); });
+    V2.savePlan(out).then(function(saved){
+      plan=saved||out;
+      toastMsg('已保存 · 从今天起生成新版本生效（不影响历史日期）');
+    }).catch(function(err){
+      toastMsg('保存失败：'+(err&&err.message?err.message:'请稍后重试'), true);
+      if(window.console) console.error('[weekly-plan] 保存失败:', err);
+    });
+  });
+  document.getElementById('discardPlanBtn').addEventListener('click', function(){
+    draft=JSON.parse(JSON.stringify(plan)); renderPlan();
+  });
+
+  // 数据来自真实后端：等 V2.ready（assets/app.js 拉取 /api/templates、/api/weekly-plan/versions 等）后渲染。
+  V2.ready.then(function(){
+    templates=V2.templates();
+    plan=V2.plan();
+    draft=JSON.parse(JSON.stringify(plan));
+    renderPlan();
+  }).catch(function(err){
+    toastMsg('数据加载失败：'+(err&&err.message?err.message:'请刷新重试'), true);
+    if(window.console) console.error('[weekly-plan] 数据加载失败:', err);
+  });
+})();
+</script>
+</body>
+</html>
