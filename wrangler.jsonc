@@ -3,6 +3,9 @@
   "name": "trainlog",
   "account_id": "b150998ae9545a98adb8c03d65019504",
   "workers_dev": true,
+  "routes": [
+    { "pattern": "trainlog.life", "custom_domain": true }
+  ],
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-27",
   "assets": {
