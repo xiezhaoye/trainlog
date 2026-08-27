@@ -11,6 +11,7 @@ export interface Env {
   RESEND_FROM_EMAIL?: string;
   TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET_KEY?: string;
+  MCP_KEY_ENCRYPTION_KEY?: string;
 }
 
 type Row = Record<string, unknown>;
@@ -170,6 +171,10 @@ function randomCode() {
   return String(crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000).padStart(6, '0');
 }
 
+function randomToken(byteLength: number) {
+  return bytesToBase64(randomBytes(byteLength)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 async function sha256(value: string) {
   const digest = await crypto.subtle.digest('SHA-256', encoder.encode(value));
   return bytesToBase64(new Uint8Array(digest));
@@ -183,6 +188,35 @@ async function passwordHash(password: string, salt?: Uint8Array) {
     name: 'PBKDF2', hash: 'SHA-256', salt: saltBuffer, iterations: PASSWORD_ITERATIONS
   }, key, 256);
   return { salt: bytesToBase64(actualSalt), hash: bytesToBase64(new Uint8Array(bits)) };
+}
+
+async function importMcpEncryptionKey(env: Env) {
+  if (!env.MCP_KEY_ENCRYPTION_KEY) fail('MCP Key 加解密尚未配置', 503);
+  const raw = base64ToBytes(env.MCP_KEY_ENCRYPTION_KEY);
+  return crypto.subtle.importKey('raw', raw as BufferSource, 'AES-GCM', false, ['encrypt', 'decrypt']);
+}
+
+// mcp_key_hash (SHA-256) stays the auth lookup path and is unaffected by this -
+// this reversible copy exists solely so the account page can redisplay the raw
+// key later, since the user chose "viewing = same trust level as regenerating"
+// over a show-once model.
+async function encryptMcpKey(env: Env, plaintext: string) {
+  const key = await importMcpEncryptionKey(env);
+  const iv = randomBytes(12);
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv as BufferSource }, key, encoder.encode(plaintext));
+  const combined = new Uint8Array(iv.length + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ciphertext), iv.length);
+  return bytesToBase64(combined);
+}
+
+async function decryptMcpKey(env: Env, stored: string) {
+  const key = await importMcpEncryptionKey(env);
+  const combined = base64ToBytes(stored);
+  const iv = combined.slice(0, 12);
+  const ciphertext = combined.slice(12);
+  const plainBuffer = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv as BufferSource }, key, ciphertext as BufferSource);
+  return new TextDecoder().decode(plainBuffer);
 }
 
 function constantTimeEqual(left: string, right: string) {
@@ -301,6 +335,12 @@ async function requireUser(request: Request, env: Env) {
     await localDevelopmentUser(env);
     return 'local-dev-user';
   }
+  if (supplied.startsWith('tlk_')) {
+    const hash = await sha256(supplied);
+    const user = await env.DB.prepare('SELECT id FROM users WHERE mcp_key_hash = ?').bind(hash).first<Row>();
+    if (user?.id) return String(user.id);
+    return fail('无效的 API Key', 401);
+  }
   const user = await sessionUser(request, env);
   if (user?.id) return String(user.id);
   return fail('请先登录', 401);
@@ -313,6 +353,14 @@ async function ensureLibrary(db: D1Database, userId: string) {
   await db.prepare('INSERT INTO action_library (user_id, library_json, updated_at) VALUES (?, ?, ?)')
     .bind(userId, JSON.stringify(parts), now()).run();
   return parts;
+}
+
+async function saveLibrary(db: D1Database, userId: string, parts: unknown) {
+  const normalized = normalizeActionLibrary(parts);
+  await db.prepare(`INSERT INTO action_library (user_id,library_json,updated_at) VALUES (?,?,?)
+    ON CONFLICT(user_id) DO UPDATE SET library_json=excluded.library_json,updated_at=excluded.updated_at`)
+    .bind(userId, JSON.stringify(normalized), now()).run();
+  return normalized;
 }
 
 async function ensureDefaultTemplatesAndPlan(db: D1Database, userId: string) {
@@ -501,6 +549,270 @@ async function staticPage(request: Request, env: Env, path: string, injectAuthBr
   });
 }
 
+type McpToolContext = { db: D1Database; userId: string };
+type ActionLibraryPart = { name: string; actions: string[] };
+
+function findPartIndex(parts: ActionLibraryPart[], name: string) {
+  return parts.findIndex((part) => part.name === name);
+}
+
+const EXERCISE_SCHEMA = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    name: { type: 'string' },
+    part: { type: 'string' },
+    type: { type: 'string', enum: ['cardio', 'resistance'] },
+    done: { type: 'boolean' },
+    notes: { type: 'string' },
+    first_set_ts: { type: ['number', 'null'] },
+    finish_ts: { type: ['number', 'null'] },
+    duration: { type: ['number', 'null'] },
+    plan_sets: { type: ['number', 'null'] },
+    deleted: { type: 'boolean' },
+    sets: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          weight_kg: { type: ['number', 'null'] },
+          is_bodyweight: { type: 'boolean' },
+          reps: { type: ['number', 'null'] },
+          done: { type: 'boolean' }
+        }
+      }
+    }
+  }
+};
+
+const RECORD_MUTATION_PROPERTIES = {
+  type: { type: 'string', enum: ['cardio', 'resistance'] },
+  date: { type: 'string' },
+  templateId: { type: ['string', 'null'] },
+  templateName: { type: 'string' },
+  session: { type: 'boolean' },
+  cardio: { type: 'object', properties: { action: { type: 'string' }, speed: { type: 'number' }, duration: { type: 'number' } } },
+  resistance: { type: 'object', properties: { exercises: { type: 'array', items: EXERCISE_SCHEMA } } },
+  actions: { type: 'array', items: EXERCISE_SCHEMA, description: 'session=true 时使用' },
+  durationMinutes: { type: 'number' },
+  completed: { type: 'boolean' },
+  mood: { type: ['number', 'null'] }
+};
+
+const TEMPLATE_MUTATION_PROPERTIES = {
+  type: { type: 'string', enum: ['cardio', 'resistance'] },
+  name: { type: 'string' },
+  action: { type: 'string' },
+  speed: { type: 'number' },
+  duration: { type: 'number' },
+  parts: { type: 'array', items: { type: 'string' } },
+  exercises: { type: 'array', items: EXERCISE_SCHEMA }
+};
+
+const MCP_TOOLS = [
+  { name: 'get_action_library', description: '列出所有身体部位及其下的动作。', inputSchema: { type: 'object', properties: {} } },
+  { name: 'add_action', description: '给某个身体部位添加一个动作；若该部位不存在会自动创建。', inputSchema: { type: 'object', required: ['part', 'action'], properties: { part: { type: 'string' }, action: { type: 'string' } } } },
+  { name: 'remove_action', description: '从某个身体部位移除一个动作。', inputSchema: { type: 'object', required: ['part', 'action'], properties: { part: { type: 'string' }, action: { type: 'string' } } } },
+  { name: 'rename_action', description: '重命名某个身体部位下的一个动作。', inputSchema: { type: 'object', required: ['part', 'oldName', 'newName'], properties: { part: { type: 'string' }, oldName: { type: 'string' }, newName: { type: 'string' } } } },
+  { name: 'add_body_part', description: '新增一个身体部位（初始不含动作）。', inputSchema: { type: 'object', required: ['name'], properties: { name: { type: 'string' } } } },
+  { name: 'remove_body_part', description: '删除一个身体部位及其下所有动作；不影响已保存的模板与训练记录。', inputSchema: { type: 'object', required: ['name'], properties: { name: { type: 'string' } } } },
+  { name: 'replace_action_library', description: '批量整体替换动作库（适合初次同步大量数据）。', inputSchema: { type: 'object', required: ['parts'], properties: { parts: { type: 'array', items: { type: 'object', required: ['name', 'actions'], properties: { name: { type: 'string' }, actions: { type: 'array', items: { type: 'string' } } } } } } } },
+
+  { name: 'list_templates', description: '列出所有训练模板。', inputSchema: { type: 'object', properties: {} } },
+  { name: 'get_template', description: '获取单个训练模板详情。', inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } } },
+  { name: 'create_template', description: '创建一个有氧或抗阻训练模板。', inputSchema: { type: 'object', required: ['type', 'name'], properties: TEMPLATE_MUTATION_PROPERTIES } },
+  { name: 'update_template', description: '更新一个训练模板（未提供的字段保持不变）。', inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' }, ...TEMPLATE_MUTATION_PROPERTIES } } },
+  { name: 'delete_template', description: '删除一个训练模板。', inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } } },
+
+  { name: 'get_weekly_plan', description: '获取指定日期（默认今天）生效的周计划。', inputSchema: { type: 'object', properties: { date: { type: 'string', description: 'YYYY-MM-DD，默认今天（Asia/Shanghai）' } } } },
+  { name: 'get_weekly_plan_versions', description: '列出周计划的全部历史版本。', inputSchema: { type: 'object', properties: {} } },
+  { name: 'set_day_plan', description: '设置某一天（周一至周日）安排的训练模板 id 列表；从今天起生效，历史版本不受影响。', inputSchema: { type: 'object', required: ['day', 'templateIds'], properties: { day: { type: 'string', enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] }, templateIds: { type: 'array', items: { type: 'string' } } } } },
+  { name: 'replace_weekly_plan', description: '批量整体替换本周计划（从今天起生效，适合初次同步）。', inputSchema: { type: 'object', required: ['plan'], properties: { plan: { type: 'object', properties: { mon: { type: 'array', items: { type: 'string' } }, tue: { type: 'array', items: { type: 'string' } }, wed: { type: 'array', items: { type: 'string' } }, thu: { type: 'array', items: { type: 'string' } }, fri: { type: 'array', items: { type: 'string' } }, sat: { type: 'array', items: { type: 'string' } }, sun: { type: 'array', items: { type: 'string' } } } } } } },
+
+  { name: 'list_records', description: '列出训练记录，可按日期或起止日期范围筛选。', inputSchema: { type: 'object', properties: { date: { type: 'string' }, from: { type: 'string' }, to: { type: 'string' } } } },
+  { name: 'get_record', description: '获取单条训练记录详情。', inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } } },
+  { name: 'create_record', description: '记录一次训练（已完成或计划中的训练）。', inputSchema: { type: 'object', required: ['type', 'date', 'templateName'], properties: RECORD_MUTATION_PROPERTIES } },
+  { name: 'update_record', description: '更新一条训练记录（未提供的字段保持不变）。', inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' }, ...RECORD_MUTATION_PROPERTIES } } },
+  { name: 'delete_record', description: '删除一条训练记录。', inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } } }
+];
+
+const MCP_TOOL_HANDLERS: Record<string, (args: Record<string, unknown>, ctx: McpToolContext) => Promise<unknown>> = {
+  async get_action_library(_args, { db, userId }) {
+    return { parts: await ensureLibrary(db, userId) };
+  },
+  async add_action(args, { db, userId }) {
+    const part = stringValue(args.part); const action = stringValue(args.action);
+    if (!part || !action) fail('part and action are required');
+    const parts = await ensureLibrary(db, userId) as ActionLibraryPart[];
+    const index = findPartIndex(parts, part);
+    const next = index === -1 ? [...parts, { name: part, actions: [action] }] : parts.map((p, i) => i === index ? { ...p, actions: [...p.actions, action] } : p);
+    return { parts: await saveLibrary(db, userId, next) };
+  },
+  async remove_action(args, { db, userId }) {
+    const part = stringValue(args.part); const action = stringValue(args.action);
+    if (!part || !action) fail('part and action are required');
+    const parts = await ensureLibrary(db, userId) as ActionLibraryPart[];
+    const index = findPartIndex(parts, part);
+    if (index === -1) fail('part not found', 404);
+    const next = parts.map((p, i) => i === index ? { ...p, actions: p.actions.filter((a) => a !== action) } : p);
+    return { parts: await saveLibrary(db, userId, next) };
+  },
+  async rename_action(args, { db, userId }) {
+    const part = stringValue(args.part); const oldName = stringValue(args.oldName); const newName = stringValue(args.newName);
+    if (!part || !oldName || !newName) fail('part, oldName and newName are required');
+    const parts = await ensureLibrary(db, userId) as ActionLibraryPart[];
+    const index = findPartIndex(parts, part);
+    if (index === -1) fail('part not found', 404);
+    if (!parts[index].actions.includes(oldName)) fail('action not found', 404);
+    const next = parts.map((p, i) => i === index ? { ...p, actions: p.actions.map((a) => a === oldName ? newName : a) } : p);
+    return { parts: await saveLibrary(db, userId, next) };
+  },
+  async add_body_part(args, { db, userId }) {
+    const name = stringValue(args.name);
+    if (!name) fail('name is required');
+    const parts = await ensureLibrary(db, userId) as ActionLibraryPart[];
+    if (findPartIndex(parts, name) !== -1) return { parts };
+    return { parts: await saveLibrary(db, userId, [...parts, { name, actions: [] }]) };
+  },
+  async remove_body_part(args, { db, userId }) {
+    const name = stringValue(args.name);
+    if (!name) fail('name is required');
+    const parts = await ensureLibrary(db, userId) as ActionLibraryPart[];
+    return { parts: await saveLibrary(db, userId, parts.filter((p) => p.name !== name)) };
+  },
+  async replace_action_library(args, { db, userId }) {
+    return { parts: await saveLibrary(db, userId, args.parts) };
+  },
+
+  async list_templates(_args, { db, userId }) {
+    return { templates: await listTemplates(db, userId) };
+  },
+  async get_template(args, { db, userId }) {
+    const id = stringValue(args.id); if (!id) fail('id is required');
+    const row = await templateById(db, userId, id);
+    if (!row) fail('template not found', 404);
+    return mapTemplate(row);
+  },
+  async create_template(args, { db, userId }) {
+    const id = uid(); const fields = templateFields(args); const stamp = now();
+    await db.prepare(`INSERT INTO templates (id,user_id,type,name,cardio_action,cardio_speed,cardio_duration,resistance_parts,resistance_exercises,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, ...fields, stamp, stamp).run();
+    return mapTemplate(await templateById(db, userId, id));
+  },
+  async update_template(args, { db, userId }) {
+    const id = stringValue(args.id); if (!id) fail('id is required');
+    const previous = await templateById(db, userId, id);
+    if (!previous) fail('template not found', 404);
+    const fields = templateFields(args, previous);
+    await db.prepare(`UPDATE templates SET type=?,name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_parts=?,resistance_exercises=?,updated_at=?
+      WHERE user_id=? AND id=?`).bind(...fields, now(), userId, id).run();
+    return mapTemplate(await templateById(db, userId, id));
+  },
+  async delete_template(args, { db, userId }) {
+    const id = stringValue(args.id); if (!id) fail('id is required');
+    await db.prepare('DELETE FROM templates WHERE user_id = ? AND id = ?').bind(userId, id).run();
+    return { ok: true };
+  },
+
+  async get_weekly_plan(args, { db, userId }) {
+    const date = stringValue(args.date) || dateInShanghai();
+    return { date, plan: await planForDate(db, userId, date) };
+  },
+  async get_weekly_plan_versions(_args, { db, userId }) {
+    const rows = await db.prepare('SELECT effective_from, plan_json FROM weekly_plan_versions WHERE user_id = ? ORDER BY effective_from ASC').bind(userId).all<Row>();
+    return { versions: rows.results.map((row) => ({ effectiveFrom: row.effective_from, plan: safeJson(row.plan_json, normalizeWeeklyPlan({})) })) };
+  },
+  async set_day_plan(args, { db, userId }) {
+    const day = stringValue(args.day);
+    if (!(WEEKDAY_KEYS as readonly string[]).includes(day)) fail('day must be one of mon..sun');
+    if (!Array.isArray(args.templateIds)) fail('templateIds must be an array');
+    const effectiveFrom = dateInShanghai();
+    const current = await planForDate(db, userId, effectiveFrom);
+    const plan = normalizeWeeklyPlan({ ...current, [day]: args.templateIds });
+    await db.prepare(`INSERT INTO weekly_plan_versions (user_id,effective_from,plan_json,updated_at) VALUES (?,?,?,?)
+      ON CONFLICT(user_id,effective_from) DO UPDATE SET plan_json=excluded.plan_json,updated_at=excluded.updated_at`).bind(userId, effectiveFrom, JSON.stringify(plan), now()).run();
+    return { plan, effectiveFrom };
+  },
+  async replace_weekly_plan(args, { db, userId }) {
+    const plan = normalizeWeeklyPlan(args.plan ?? args); const effectiveFrom = dateInShanghai();
+    await db.prepare(`INSERT INTO weekly_plan_versions (user_id,effective_from,plan_json,updated_at) VALUES (?,?,?,?)
+      ON CONFLICT(user_id,effective_from) DO UPDATE SET plan_json=excluded.plan_json,updated_at=excluded.updated_at`).bind(userId, effectiveFrom, JSON.stringify(plan), now()).run();
+    return { plan, effectiveFrom };
+  },
+
+  async list_records(args, { db, userId }) {
+    const params = new URLSearchParams();
+    if (typeof args.date === 'string' && args.date) params.set('date', args.date);
+    else if (typeof args.from === 'string' && typeof args.to === 'string' && args.from && args.to) { params.set('from', args.from); params.set('to', args.to); }
+    return { records: await listRecords(db, userId, params) };
+  },
+  async get_record(args, { db, userId }) {
+    const id = stringValue(args.id); if (!id) fail('id is required');
+    const row = await recordById(db, userId, id);
+    if (!row) fail('record not found', 404);
+    return mapRecord(row);
+  },
+  async create_record(args, { db, userId }) {
+    const id = uid(); const fields = recordFields(args); const stamp = now();
+    await db.prepare(`INSERT INTO records (id,user_id,date,type,template_id,template_name,cardio_action,cardio_speed,cardio_duration,resistance_exercises,duration_minutes,sync_calendar,completed,mood,session,calendar_json,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, 0, fields.completed, fields.mood, fields.session, null, stamp, stamp).run();
+    return mapRecord(await recordById(db, userId, id));
+  },
+  async update_record(args, { db, userId }) {
+    const id = stringValue(args.id); if (!id) fail('id is required');
+    const previous = await recordById(db, userId, id);
+    if (!previous) fail('record not found', 404);
+    const fields = recordFields(args, previous);
+    await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=0,completed=?,mood=?,session=?,calendar_json=NULL,updated_at=? WHERE user_id=? AND id=?`)
+      .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.completed, fields.mood, fields.session, now(), userId, id).run();
+    return mapRecord(await recordById(db, userId, id));
+  },
+  async delete_record(args, { db, userId }) {
+    const id = stringValue(args.id); if (!id) fail('id is required');
+    await db.prepare('DELETE FROM records WHERE user_id = ? AND id = ?').bind(userId, id).run();
+    return { ok: true };
+  }
+};
+
+async function mcpHandler(request: Request, env: Env, db: D1Database, userId: string) {
+  if (request.method !== 'POST') return json({ ok: false, error: 'method not allowed' }, 405, { allow: 'POST' });
+  await rateLimit(env, `mcp:${userId}`, 60, 60);
+  const input = await body(request);
+  const hasId = Object.prototype.hasOwnProperty.call(input, 'id');
+  const id = hasId ? (input.id as string | number | null) : null;
+  const method = stringValue(input.method);
+
+  if (input.jsonrpc !== '2.0' || !method) {
+    if (!hasId) return new Response(null, { status: 202 });
+    return json({ jsonrpc: '2.0', id, error: { code: -32600, message: 'Invalid Request' } });
+  }
+  if (!hasId) return new Response(null, { status: 202 });
+
+  const params = (input.params && typeof input.params === 'object' ? input.params : {}) as Record<string, unknown>;
+
+  if (method === 'initialize') {
+    const requested = stringValue(params.protocolVersion);
+    const protocolVersion = requested === '2025-03-26' ? requested : '2025-06-18';
+    return json({ jsonrpc: '2.0', id, result: { protocolVersion, capabilities: { tools: {} }, serverInfo: { name: 'trainlog', version: '1.0.0' } } });
+  }
+  if (method === 'ping') return json({ jsonrpc: '2.0', id, result: {} });
+  if (method === 'tools/list') return json({ jsonrpc: '2.0', id, result: { tools: MCP_TOOLS } });
+  if (method === 'tools/call') {
+    const name = stringValue(params.name);
+    const handler = MCP_TOOL_HANDLERS[name];
+    if (!handler) return json({ jsonrpc: '2.0', id, error: { code: -32601, message: `Unknown tool: ${name}` } });
+    const args = (params.arguments && typeof params.arguments === 'object' ? params.arguments : {}) as Record<string, unknown>;
+    try {
+      const result = await handler(args, { db, userId });
+      return json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: JSON.stringify(result) }], isError: false } });
+    } catch (error) {
+      const message = (error as AppError).message || 'internal error';
+      return json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: message }], isError: true } });
+    }
+  }
+  return json({ jsonrpc: '2.0', id, error: { code: -32601, message: `Method not found: ${method}` } });
+}
+
 async function api(request: Request, env: Env, url: URL) {
   const authResponse = await authApi(request, env, url);
   if (authResponse) return authResponse;
@@ -564,9 +876,7 @@ async function api(request: Request, env: Env, url: URL) {
 
   if (pathname === '/api/action-library' && request.method === 'GET') return json({ ok: true, parts: await ensureLibrary(db, userId) });
   if (pathname === '/api/action-library' && request.method === 'PUT') {
-    const input = await body(request); const parts = normalizeActionLibrary(input.parts ?? input);
-    await db.prepare(`INSERT INTO action_library (user_id,library_json,updated_at) VALUES (?,?,?)
-      ON CONFLICT(user_id) DO UPDATE SET library_json=excluded.library_json,updated_at=excluded.updated_at`).bind(userId, JSON.stringify(parts), now()).run();
+    const input = await body(request); const parts = await saveLibrary(db, userId, input.parts ?? input);
     return json({ ok: true, parts });
   }
 
@@ -582,6 +892,30 @@ async function api(request: Request, env: Env, url: URL) {
     await db.prepare('UPDATE users SET unit = ?, updated_at = ? WHERE id = ?').bind(unit, now(), userId).run();
     return json({ ok: true, unit });
   }
+
+  if (pathname === '/api/account/mcp-key' && request.method === 'GET') {
+    const row = await db.prepare('SELECT mcp_key_encrypted, mcp_key_created_at FROM users WHERE id = ?').bind(userId).first<Row>();
+    const encrypted = row?.mcp_key_encrypted ? String(row.mcp_key_encrypted) : null;
+    const key = encrypted ? await decryptMcpKey(env, encrypted) : null;
+    return json({ ok: true, hasKey: Boolean(key), key, createdAt: row?.mcp_key_created_at || null });
+  }
+  if (pathname === '/api/account/mcp-key' && request.method === 'POST') {
+    await rateLimit(env, `mcp-key-gen:${userId}`, 5, 60 * 60);
+    const key = `tlk_${randomToken(32)}`;
+    const hash = await sha256(key);
+    const encrypted = await encryptMcpKey(env, key);
+    const stamp = now();
+    await db.prepare('UPDATE users SET mcp_key_hash = ?, mcp_key_encrypted = ?, mcp_key_created_at = ?, updated_at = ? WHERE id = ?')
+      .bind(hash, encrypted, stamp, stamp, userId).run();
+    return json({ ok: true, key, createdAt: stamp });
+  }
+  if (pathname === '/api/account/mcp-key' && request.method === 'DELETE') {
+    await db.prepare('UPDATE users SET mcp_key_hash = NULL, mcp_key_encrypted = NULL, mcp_key_created_at = NULL, updated_at = ? WHERE id = ?')
+      .bind(now(), userId).run();
+    return json({ ok: true });
+  }
+
+  if (pathname === '/api/mcp') return mcpHandler(request, env, db, userId);
 
   if (pathname === '/api/day' && request.method === 'GET') {
     const date = url.searchParams.get('date') || dateInShanghai(); const plan = await planForDate(db, userId, date);

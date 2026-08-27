@@ -7,3 +7,6 @@ TURNSTILE_SITE_KEY=
 # Add these only when you intentionally test Resend delivery locally.
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=TrainLog <auth@trainlog.life>
+# AES-256 key (base64, 32 random bytes) used to reversibly store MCP API keys
+# so the account page can redisplay them. Generate with: openssl rand -base64 32
+MCP_KEY_ENCRYPTION_KEY=

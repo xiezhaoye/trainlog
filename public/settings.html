@@ -9,7 +9,7 @@
 if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
 <script src="/skin-sync.js"></script>
 
-<title>设置 · TrainLog 砺志</title>
+<title>模板 · TrainLog 砺志</title>
 <link rel="apple-touch-icon" sizes="180x180" href="/logo/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 <meta name="apple-mobile-web-app-title" content="砺志" />
@@ -45,7 +45,6 @@ h1,h2,p{margin:0;}
 
 .topbar{flex:none;display:flex;align-items:center;gap:10px;padding:calc(10px + var(--safe-top)) 16px 12px;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
 .topbar__title{font-family:var(--font-display);font-size:24px;font-weight:700;letter-spacing:-.01em;}
-.topbar__sub{flex:1;text-align:right;font-family:var(--font-mono);font-size:10.5px;color:var(--faint);letter-spacing:.08em;}
 
 .content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 20px 24px;}
 .content::-webkit-scrollbar{width:0;}
@@ -68,65 +67,10 @@ h1,h2,p{margin:0;}
 .zone{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.12em;margin:30px 2px 14px;}
 .zone:first-of-type{margin-top:4px;}
 
-/* ── 当前登录账户 ── */
-.account-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;}
-.account-avatar{flex:none;width:42px;height:42px;border-radius:50%;background:var(--acc-tint);color:var(--accent);display:grid;place-items:center;}
-.account-avatar svg{width:21px;height:21px;}
-.account-body{flex:1;min-width:0;}
-.account-email{display:block;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.account-name{display:block;font-family:var(--font-mono);font-size:11px;color:var(--faint);letter-spacing:.06em;margin-top:3px;}
-.account-logout{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:10px;
-  border:1px solid color-mix(in oklch,var(--danger) 55%,var(--border-bright));color:var(--danger);font-size:13.5px;font-weight:600;
-  transition:background .15s ease,border-color .15s ease;}
-.account-logout:hover{background:var(--danger-tint);border-color:var(--danger);}
-.account-logout svg{width:15px;height:15px;}
-
-.pref-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;}
-.pref-info{flex:1;min-width:0;}
-.pref-name{font-size:15px;font-weight:700;}
-.pref-desc{font-size:12px;color:var(--faint);margin-top:3px;line-height:1.5;}
-.segmented{flex:none;display:flex;background:var(--raised);border:1px solid var(--border);border-radius:12px;padding:4px;}
-.segmented button{min-width:76px;min-height:42px;border-radius:9px;color:var(--muted);font-size:14px;font-weight:600;transition:background .15s ease,color .15s ease;}
-.segmented button.is-active{background:var(--bg);color:var(--fg);box-shadow:var(--seg-shadow);}
-
-.skin-note{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);letter-spacing:.06em;margin:10px 2px 0;line-height:1.6;}
-.skin-option{display:flex;align-items:center;gap:12px;min-height:62px;border-bottom:1px solid var(--border);padding:10px 2px 10px 0;cursor:pointer;transition:background .15s ease;}
-.skin-option:last-of-type{border-bottom:0;}
-.skin-option.is-selected{background:var(--acc-tint);padding-inline:10px 2px;border-radius:12px;}
-.skin-swatch{flex:none;width:56px;height:40px;border-radius:9px;border:1px solid var(--border-bright);display:flex;align-items:center;justify-content:center;gap:5px;background:var(--raised);}
-.skin-swatch span{width:14px;height:14px;border-radius:50%;box-shadow:var(--swatch-ring);}
-.skin-info{flex:1;min-width:0;}
-.skin-name{font-size:15px;font-weight:700;display:block;}
-.skin-desc{font-size:12px;color:var(--faint);margin-top:2px;display:block;}
-.skin-check{flex:none;width:20px;height:20px;display:grid;place-items:center;color:transparent;}
-.skin-option.is-selected .skin-check{color:var(--accent);}
-.skin-check svg{width:18px;height:18px;}
-
 .tabbar{flex:none;display:flex;border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);background:var(--bg);}
 .tabbar__btn{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font-size:11px;transition:color .15s ease;}
 .tabbar__btn svg{width:20px;height:20px;}
 .tabbar__btn.is-active{color:var(--accent);}
-
-.toast{position:absolute;left:14px;right:14px;top:calc(var(--safe-top) + 10px);z-index:60;background:var(--raised);border:1px solid var(--border-bright);
-  border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--fg);text-align:center;
-  opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
-.toast.is-in{opacity:1;transform:translateY(0);}
-
-/* ── 退出确认浮层（皮肤 token 化） ── */
-.ac-scrim{position:absolute;inset:0;z-index:70;background:var(--scrim-bg);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s ease;}
-.ac-scrim.is-open{opacity:1;pointer-events:auto;}
-.ac-confirm{position:absolute;left:16px;right:16px;top:50%;transform:translateY(calc(-50% + 12px)) scale(.98);z-index:71;
-  background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow-float);
-  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;}
-.ac-confirm.is-open{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1);}
-.ac-confirm__title{text-align:center;font-size:17px;font-weight:700;}
-.ac-confirm__sub{text-align:center;font-size:13px;color:var(--muted);margin-top:7px;line-height:1.5;}
-.ac-confirm__acts{display:flex;gap:10px;margin-top:20px;}
-.ac-btn{flex:1;min-height:48px;border-radius:12px;font-size:15px;font-weight:700;transition:background .15s ease,border-color .15s ease,color .15s ease;}
-.ac-btn--ghost{border:1px solid var(--border-bright);color:var(--fg);background:transparent;}
-.ac-btn--ghost:hover{border-color:var(--accent);color:var(--accent);}
-.ac-btn--danger{background:var(--danger);color:#fff;border:1px solid var(--danger);}
-.ac-btn--danger:hover{background:color-mix(in oklch,var(--danger) 88%,black);}
 
 /* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
 html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--cat-res:#a8550b;--cat-cardio:#0e7490;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,27,.14);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,27,.22);}
@@ -145,24 +89,10 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
 <div class="stage">
   <div class="app" data-od-id="settings-page">
     <header class="topbar" data-od-id="settings-topbar">
-      <div class="topbar__title">设置</div>
+      <div class="topbar__title">模板</div>
     </header>
 
     <main class="content">
-      <div class="account-card" data-od-id="account-card">
-        <span class="account-avatar" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><path d="M4 20c1.4-2.4 4.2-4 8-4s6.6 1.6 8 4"/></svg>
-        </span>
-        <span class="account-body">
-          <span class="account-email" id="accountEmail">正在载入账号…</span>
-          <span class="account-name" id="accountName" style="display:none;"></span>
-        </span>
-        <button class="account-logout" id="logoutBtn" type="button" data-od-id="logout-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2M15 8l4 4-4 4M19 12H9"/></svg>
-          退出
-        </button>
-      </div>
-
       <div class="zone">训练配置</div>
       <div class="card">
         <a class="setting-row" href="action-library.html" data-od-id="setting-library">
@@ -190,74 +120,6 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
           <span class="setting-row__chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
         </a>
       </div>
-
-      <div class="zone">训练偏好</div>
-      <div class="card pref" data-od-id="pref-unit">
-        <div class="pref-row">
-          <div class="pref-info">
-            <div class="pref-name">重量单位</div>
-            <div class="pref-desc">全局生效 · 训练执行与模板编辑的输入按此单位显示</div>
-          </div>
-          <div class="segmented" id="unitSeg" data-od-id="unit-seg">
-            <button class="is-active" type="button" data-u="kg">公斤</button>
-            <button type="button" data-u="lb">磅</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="zone">外观</div>
-      <div class="card skin" data-od-id="skin-select">
-        <div class="skin-option is-selected" data-skin="athletic" data-od-id="skin-athletic">
-          <span class="skin-swatch">
-            <span style="background:#18191b;"></span><span style="background:#a2d43f;"></span><span style="background:#d99b3e;"></span>
-          </span>
-          <span class="skin-info">
-            <span class="skin-name">竞训深色</span>
-            <span class="skin-desc">深夜训练舱 · 伏特青柠</span>
-          </span>
-          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
-        </div>
-        <div class="skin-option" data-skin="heat" data-od-id="skin-heat">
-          <span class="skin-swatch">
-            <span style="background:#f7f7f5;"></span><span style="background:#cf4409;"></span><span style="background:#a8550b;"></span>
-          </span>
-          <span class="skin-info">
-            <span class="skin-name">热血高键</span>
-            <span class="skin-desc">炽热日光 · 火焰橙 · 数字主角</span>
-          </span>
-          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
-        </div>
-        <div class="skin-option" data-skin="fire" data-od-id="skin-fire">
-          <span class="skin-swatch">
-            <span style="background:#121214;"></span><span style="background:#ff7024;"></span><span style="background:#f9992e;"></span>
-          </span>
-          <span class="skin-info">
-            <span class="skin-name">燃夜竞技场</span>
-            <span class="skin-desc">深夜赛道 · 火焰橙 · 青柠次点缀</span>
-          </span>
-          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
-        </div>
-        <div class="skin-option" data-skin="fresh" data-od-id="skin-fresh">
-          <span class="skin-swatch">
-            <span style="background:#f3f8f6;"></span><span style="background:#26794a;"></span><span style="background:#8a6510;"></span>
-          </span>
-          <span class="skin-info">
-            <span class="skin-name">健康轻松</span>
-            <span class="skin-desc">薄荷晨间 · 草木绿 · 疏朗元气</span>
-          </span>
-          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
-        </div>
-        <div class="skin-option" data-skin="efficient" data-od-id="skin-efficient">
-          <span class="skin-swatch">
-            <span style="background:#f4f6f9;"></span><span style="background:#3a62d6;"></span><span style="background:#3561ad;"></span>
-          </span>
-          <span class="skin-info">
-            <span class="skin-name">冷静工具</span>
-            <span class="skin-desc">效率控制台 · 科技蓝 · 完成即满格</span>
-          </span>
-          <span class="skin-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
-        </div>
-<div class="skin-note" data-od-id="skin-note">皮肤即时生效，全 App 页面同步套用；本次选择仅保存于当前设备。</div>
     </main>
 
     <nav class="tabbar" data-od-id="tabbar">
@@ -266,119 +128,12 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
       <a class="tabbar__btn" href="records.html" data-od-id="tab-history">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="15" rx="3"/><path d="M4 10h16M8 3.5v3M16 3.5v3"/></svg>记录</a>
       <a class="tabbar__btn is-active" href="settings.html" data-od-id="tab-content">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2h3.4l.5 2.3a7 7 0 0 1 1.9 1.1l2.2-.8 1.7 3-1.8 1.5a7.3 7.3 0 0 1 0 2.2l1.8 1.5-1.7 3-2.2-.8a7 7 0 0 1-1.9 1.1l-.5 2.3h-3.4l-.5-2.3a7 7 0 0 1-1.9-1.1l-2.2.8-1.7-3 1.8-1.5a7.3 7.3 0 0 1 0-2.2L4 8.8l1.7-3 2.2.8a7 7 0 0 1 1.9-1.1z"/><circle cx="12" cy="12" r="2.6"/></svg>设置</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>模板</a>
+      <a class="tabbar__btn" href="me.html" data-od-id="tab-me">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.6-3.2 4.2-5 7-5s5.4 1.8 7 5"/></svg>我的</a>
     </nav>
-
-    <div class="toast" id="toast" role="status"></div>
   </div>
 </div>
 
-<script>
-(function(){
-  'use strict';
-  var UKEY='v2.unit', SKEY='v2.skin';
-  var unit=(function(){ try{ return localStorage.getItem(UKEY)||'kg'; }catch(e){ return 'kg'; } })();
-  var skin=(function(){ try{ return localStorage.getItem(SKEY)||'athletic'; }catch(e){ return 'athletic'; } })();
-  var SKIN_NAMES={athletic:'竞训深色','heat':'热血高键','fire':'燃夜竞技场','fresh':'健康轻松','efficient':'冷静工具'};
-  var THEME_COLORS={athletic:'#18191b','heat':'#f7f7f5','fire':'#121214','fresh':'#f3f8f6','efficient':'#f4f6f9'};
-  var toast=document.getElementById('toast'), toastTimer;
-  function toastMsg(msg){
-    toast.textContent=msg;
-    toast.classList.add('is-in');
-    clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
-  }
-  function applySkin(){
-    document.documentElement.setAttribute('data-skin', skin);
-    var meta=document.querySelector('meta[name="theme-color"]');
-    if(meta) meta.setAttribute('content', THEME_COLORS[skin]||'#18191b');
-    renderSkin();
-  }
-  function renderSkin(){
-    document.querySelectorAll('.skin-option').forEach(function(o){ o.classList.toggle('is-selected', o.getAttribute('data-skin')===skin); });
-  }
-  document.querySelectorAll('.skin-option').forEach(function(o){
-    o.addEventListener('click', function(){
-      var v=o.getAttribute('data-skin');
-      if(skin!==v){
-        skin=v; try{ localStorage.setItem(SKEY,skin); }catch(e){} applySkin(); toastMsg('已切换皮肤：'+SKIN_NAMES[skin]+' · 全局生效');
-        fetch('/api/account/skin', { method:'PUT', credentials:'same-origin', headers:{'content-type':'application/json'}, body: JSON.stringify({ skin: skin }) }).catch(function(){});
-      }
-    });
-  });
-  document.addEventListener('v2:skin-synced', function(e){
-    var v=e.detail; if(!v||skin===v) return; skin=v; try{ localStorage.setItem(SKEY,skin); }catch(e){} applySkin();
-  });
-  document.addEventListener('v2:unit-synced', function(e){
-    var v=e.detail; if(!v||unit===v) return; unit=v; try{ localStorage.setItem(UKEY,unit); }catch(e){} renderUnit();
-  });
-  function renderUnit(){
-    document.querySelectorAll('#unitSeg button').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-u')===unit); });
-  }
-  document.querySelectorAll('#unitSeg button').forEach(function(b){
-    b.addEventListener('click', function(){
-      var v=b.getAttribute('data-u');
-      if(unit!==v){
-        unit=v; try{ localStorage.setItem(UKEY,unit); }catch(e){} renderUnit(); toastMsg('已切换单位：'+(unit==='kg'?'公斤':'磅'));
-        fetch('/api/account/unit', { method:'PUT', credentials:'same-origin', headers:{'content-type':'application/json'}, body: JSON.stringify({ unit: unit }) }).catch(function(){});
-      }
-    });
-  });
-  applySkin();
-  renderUnit();
-  renderSkin();
-
-  /* ── 当前登录账户 + 退出 ── */
-  var emailEl=document.getElementById('accountEmail');
-  var nameEl=document.getElementById('accountName');
-  function loadAccount(){
-    fetch('/api/auth/session', { credentials: 'same-origin' }).then(function(r){
-      return r.json().catch(function(){ return {}; });
-    }).then(function(payload){
-      if(payload && payload.ok && payload.user){
-        emailEl.textContent = payload.user.email || '';
-        if(payload.user.displayName){ nameEl.textContent = payload.user.displayName; nameEl.style.display='block'; }
-        else nameEl.style.display='none';
-      } else {
-        emailEl.textContent = '未登录';
-      }
-    }).catch(function(){ emailEl.textContent = '未登录'; });
-  }
-  /* 退出确认：皮肤 token 化的自定义确认浮层 */
-  function confirmLogout(){
-    return new Promise(function(resolve){
-      var scrim=document.createElement('div'); scrim.className='ac-scrim';
-      var box=document.createElement('div'); box.className='ac-confirm';
-      box.innerHTML='<div class="ac-confirm__title">退出登录？</div>'+
-        '<div class="ac-confirm__sub">退出后需重新登录才能同步与写训练数据。</div>'+
-        '<div class="ac-confirm__acts">'+
-          '<button class="ac-btn ac-btn--ghost" data-role="cancel" type="button">取消</button>'+
-          '<button class="ac-btn ac-btn--danger" data-role="ok" type="button">退出登录</button>'+
-        '</div>';
-      document.querySelector('.app').appendChild(scrim);
-      document.querySelector('.app').appendChild(box);
-      requestAnimationFrame(function(){ scrim.classList.add('is-open'); box.classList.add('is-open'); });
-      var close=function(v){ scrim.classList.remove('is-open'); box.classList.remove('is-open');
-        setTimeout(function(){ scrim.remove(); box.remove(); },180); resolve(v); };
-      box.querySelector('[data-role="cancel"]').addEventListener('click', function(){ close(false); });
-      box.querySelector('[data-role="ok"]').addEventListener('click', function(){ close(true); });
-      scrim.addEventListener('click', function(){ close(false); });
-    });
-  }
-  document.getElementById('logoutBtn').addEventListener('click', function(){
-    confirmLogout().then(function(ok){
-      if(!ok) return;
-      var btn=document.getElementById('logoutBtn'); btn.disabled=true;
-      fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' })
-        .then(function(response){
-          if(!response.ok) throw new Error('logout failed');
-          window.location.assign('/');
-        })
-        .catch(function(){ btn.disabled=false; toastMsg('退出失败，请重试'); });
-    });
-  });
-  loadAccount();
-})();
-</script>
 <script src="/pwa-register.js"></script></body>
 </html>

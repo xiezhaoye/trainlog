@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#18191b" />
+<script>/* EFGH 换肤启动：localStorage v2.skin → html[data-skin]，防首帧闪烁 */
+(function(){var m={heat:'#f7f7f5',fire:'#121214',fresh:'#f3f8f6',efficient:'#f4f6f9'};var s=null;try{s=localStorage.getItem('v2.skin');}catch(e){}
+if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
+<script src="/skin-sync.js"></script>
+
+<title>MCP API Key · TrainLog 砺志</title>
+<link rel="apple-touch-icon" sizes="180x180" href="/logo/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="apple-mobile-web-app-title" content="砺志" />
+<style>
+:root {
+  --bg:#18191b; --surface:#232527; --raised:#2c2e31;
+  --fg:#ececec; --muted:#9da1a5; --faint:#767a7e;
+  --border:#35383b; --border-bright:#4a4d51;
+  --accent:#a2d43f; --accent-strong:#86b52e; --on-accent:#1f2517;
+  --ok:#4db06f; --danger:#ea4a4a; --warn:#d9a23f;
+  --acc-tint: color-mix(in oklch, var(--accent) 14%, transparent);
+  --danger-tint: color-mix(in oklch, var(--danger) 14%, transparent);
+  --shadow-float: 0 18px 44px rgba(0,0,0,.5);
+  --font-display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  --font-mono: "SF Mono",Menlo,ui-monospace,monospace;
+  --safe-top: env(safe-area-inset-top,0px);
+  --safe-bottom: env(safe-area-inset-bottom,0px);
+}
+:root { --body-bg:#0c0d0f; --app-ring:0 0 0 1px rgba(255,255,255,.04); --scrim-bg:rgba(5,6,8,.62); --ok-text:#07130b; }
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;height:100%;}
+body{margin:0;height:100%;background:var(--body-bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;}
+input,textarea{font:inherit;color:var(--fg);}
+a{color:inherit;text-decoration:none;}
+h1,h2,p{margin:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.stage{min-height:100%;display:flex;justify-content:center;}
+.app{position:relative;width:100%;max-width:430px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--app-ring);}
+
+.topbar{flex:none;display:flex;align-items:center;gap:10px;padding:calc(8px + var(--safe-top)) 12px 10px;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
+.topbar__title{font-size:17px;font-weight:700;text-align:center;flex:1;}
+.back-chip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);font-size:15px;}
+.back-chip svg{width:16px;height:16px;}
+.topbar__spacer{width:44px;flex:none;}
+
+.content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 20px 24px;}
+.content::-webkit-scrollbar{width:0;}
+
+.zone{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.12em;margin:26px 2px 12px;}
+.zone:first-of-type{margin-top:4px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;}
+
+.hint{font-size:13px;color:var(--faint);line-height:1.6;margin:2px 2px 4px;}
+.field-row{display:flex;gap:8px;align-items:center;margin-top:10px;}
+.field-row:first-child{margin-top:0;}
+.field-input{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid var(--border-bright);background:var(--raised);
+  padding:0 12px;font-family:var(--font-mono);font-size:12.5px;color:var(--fg);}
+.field-textarea{width:100%;min-height:260px;border-radius:12px;border:1px solid var(--border-bright);background:var(--raised);
+  padding:12px;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;color:var(--fg);white-space:pre;resize:vertical;}
+.meta-line{font-size:12px;color:var(--faint);margin-top:8px;}
+
+.btn-primary-sm{flex:1;min-height:48px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:800;}
+.btn-primary-sm:hover{background:var(--accent-strong);}
+.btn-ghost-sm{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--border-bright);color:var(--fg);font-size:15px;font-weight:600;}
+.btn-ghost-sm:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger-sm{flex:1;min-height:48px;border-radius:12px;background:var(--danger);color:#fff;font-size:15px;font-weight:800;}
+.btn-danger-sm:hover{background:color-mix(in oklch,var(--danger) 88%,black);}
+.btn-copy{flex:none;min-width:64px;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--border-bright);color:var(--fg);font-size:13.5px;font-weight:700;}
+.btn-copy:hover{border-color:var(--accent);color:var(--accent);}
+.actions-row{display:flex;gap:10px;margin-top:16px;}
+
+.empty-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 18px;text-align:center;}
+.empty-card__title{font-size:16px;font-weight:700;}
+.empty-card__desc{font-size:13px;color:var(--faint);margin-top:6px;line-height:1.6;}
+.empty-card button{margin-top:16px;min-height:48px;padding:0 24px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:800;}
+
+/* 弹层 */
+.scrim{position:absolute;inset:0;z-index:70;background:var(--scrim-bg);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.scrim.is-open{opacity:1;pointer-events:auto;}
+.modal{position:absolute;left:12px;right:12px;top:50%;transform:translateY(calc(-50% + 12px)) scale(.98);z-index:71;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow-float);
+  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;}
+.modal.is-open{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1);}
+.modal__title{text-align:center;font-size:17px;font-weight:700;}
+.modal__sub{text-align:center;font-size:13px;color:var(--muted);margin-top:7px;line-height:1.5;}
+.modal__actions{display:flex;gap:10px;margin-top:20px;}
+
+.toast{position:absolute;left:14px;right:14px;top:calc(var(--safe-top) + 10px);z-index:80;background:var(--raised);border:1px solid var(--border-bright);
+  border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--fg);text-align:center;
+  opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
+.toast.is-in{opacity:1;transform:translateY(0);}
+.toast.is-err{border-color:var(--danger);color:var(--danger);}
+
+/* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
+html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--ok-text:#ffffff;}
+html[data-skin="fire"]{--bg:#121214;--surface:#1c1e22;--raised:#26282d;--fg:#f4f3f1;--muted:#a9a3a0;--faint:#8b8782;--border:#3c3f45;--border-bright:#55585e;--accent:#ff7024;--accent-strong:#dd4a0d;--on-accent:#1c0f06;--ok:#3ecb72;--danger:#ff5040;--warn:#f8b04a;--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(10,6,2,.62);--body-bg:#0a0b0e;--app-ring:0 0 0 1px rgba(255,255,255,.06);--scrim-bg:rgba(10,6,2,.68);--ok-text:#07130b;}
+html[data-skin="fresh"]{--bg:#f3f8f6;--surface:#ffffff;--raised:#eef3f0;--fg:#1c2321;--muted:#59625f;--faint:#6f7874;--border:#e4e9e6;--border-bright:#cfd7d3;--accent:#26794a;--accent-strong:#1f633b;--on-accent:#ffffff;--ok:#15803c;--danger:#cf4436;--warn:#97660f;--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(31,42,38,.12);--body-bg:#dfe8e3;--app-ring:0 0 0 1px rgba(31,42,38,.05);--scrim-bg:rgba(20,26,24,.38);--ok-text:#ffffff;}
+html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg:#1c2028;--muted:#5a616b;--faint:#717a85;--border:#e3e7ee;--border-bright:#c2cad5;--accent:#3a62d6;--accent-strong:#234aa0;--on-accent:#ffffff;--ok:#2353b8;--danger:#cf4436;--warn:#99630f;--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(23,30,40,.12);--body-bg:#e9edf4;--app-ring:0 0 0 1px rgba(23,30,40,.05);--scrim-bg:rgba(20,26,24,.38);--ok-text:#ffffff;}
+
+</style>
+</head>
+<body data-skin="athletic">
+<div class="stage">
+  <div class="app" data-od-id="mcp-key-page">
+    <header class="topbar" data-od-id="mcp-key-topbar">
+      <a class="back-chip" href="me.html" data-od-id="mcp-key-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        返回
+      </a>
+      <div class="topbar__title">MCP API Key</div>
+      <div class="topbar__spacer"></div>
+    </header>
+
+    <main class="content">
+      <div id="emptyState" class="empty-card" style="display:none;" data-od-id="mcp-key-empty">
+        <div class="empty-card__title">还没有 API Key</div>
+        <div class="empty-card__desc">生成后可交给你自己的 AI 助手，通过 MCP 读写动作库、训练模板、周计划与训练记录。</div>
+        <button class="btn-primary-sm" id="genBtn" type="button" style="flex:none;" data-od-id="mcp-key-gen">生成</button>
+      </div>
+
+      <div id="keyState" style="display:none;">
+        <div class="zone">Key 信息</div>
+        <div class="card" data-od-id="mcp-key-info">
+          <div class="hint">这把 Key 会一直在这里可见，因为撤销/重新生成本身不需要密码确认，随时可查看和随时可作废，安全等级是一样的。</div>
+          <div class="field-row">
+            <input class="field-input" id="keyInput" type="text" readonly />
+            <button class="btn-copy" data-copy="key" type="button">复制</button>
+          </div>
+          <div class="meta-line" id="keyMeta">创建于 --</div>
+          <div class="actions-row">
+            <button class="btn-ghost-sm" id="regenBtn" type="button" data-od-id="mcp-key-regen">重新生成</button>
+            <button class="btn-danger-sm" id="revokeBtn" type="button" data-od-id="mcp-key-revoke">撤销</button>
+          </div>
+        </div>
+
+        <div class="zone">服务 URL</div>
+        <div class="card">
+          <div class="field-row" style="margin-top:0;">
+            <input class="field-input" id="urlInput" type="text" readonly />
+            <button class="btn-copy" data-copy="url" type="button">复制</button>
+          </div>
+        </div>
+
+        <div class="zone">接入 Prompt</div>
+        <div class="card">
+          <div class="hint">把下面这段完整复制给你的 AI 助手，它会自己找到本机 MCP 配置文件并完成接入。</div>
+          <textarea class="field-textarea" id="promptArea" readonly></textarea>
+          <div class="actions-row">
+            <button class="btn-primary-sm" data-copy="prompt" type="button">复制完整 Prompt</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="loadingState" class="hint" style="text-align:center;padding:40px 0;">加载中…</div>
+    </main>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var toast=document.getElementById('toast'), toastTimer;
+  function toastMsg(msg,isErr){
+    toast.textContent=msg;
+    toast.classList.toggle('is-err',!!isErr);
+    toast.classList.add('is-in');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
+  }
+
+  function confirmModal(opts){
+    return new Promise(function(resolve){
+      var scrim=document.createElement('div'); scrim.className='scrim';
+      var modal=document.createElement('div'); modal.className='modal';
+      modal.innerHTML='<div class="modal__title">'+opts.title+'</div>'+
+        (opts.message?'<div class="modal__sub">'+opts.message+'</div>':'')+
+        '<div class="modal__actions"><button class="btn-ghost-sm" data-role="cancel">取消</button><button class="'+(opts.danger?'btn-danger-sm':'btn-primary-sm')+'" data-role="ok">'+(opts.confirmText||'确认')+'</button></div>';
+      var app=document.querySelector('.app');
+      app.appendChild(scrim); app.appendChild(modal);
+      requestAnimationFrame(function(){ scrim.classList.add('is-open'); modal.classList.add('is-open'); });
+      function close(v){ scrim.classList.remove('is-open'); modal.classList.remove('is-open'); setTimeout(function(){ modal.remove(); scrim.remove(); },180); resolve(v); }
+      modal.querySelector('[data-role="cancel"]').addEventListener('click', function(){ close(false); });
+      modal.querySelector('[data-role="ok"]').addEventListener('click', function(){ close(true); });
+      scrim.addEventListener('click', function(){ close(false); });
+    });
+  }
+
+  var emptyState=document.getElementById('emptyState'), keyState=document.getElementById('keyState'), loadingState=document.getElementById('loadingState');
+  var keyInput=document.getElementById('keyInput'), urlInput=document.getElementById('urlInput'), keyMeta=document.getElementById('keyMeta'), promptArea=document.getElementById('promptArea');
+  var genBtn=document.getElementById('genBtn'), regenBtn=document.getElementById('regenBtn'), revokeBtn=document.getElementById('revokeBtn');
+
+  function serviceUrl(){ return location.origin + '/api/mcp'; }
+
+  function buildPrompt(key, toolCount){
+    var url=serviceUrl();
+    return [
+      '## 任务：接入 trainlog MCP 服务',
+      '',
+      'MCP 服务信息：',
+      '- 服务名称：trainlog',
+      '- URL：'+url,
+      '- 鉴权 Header：Authorization: Bearer '+key,
+      '- 传输方式：HTTP（JSON-RPC，单次 JSON 响应，无需 SSE / session）',
+      '- 可用工具：连接后自动通过 tools/list 获取'+(toolCount?'，当前共 '+toolCount+' 个':'')+'，覆盖动作库、训练模板、周计划、训练记录的查看、新增、修改、删除',
+      '',
+      '执行步骤：',
+      '',
+      '1. 在本机查找当前 AI Agent 对应的 MCP 配置文件，识别配置文件路径和该 Agent 的配置 schema（不同 Agent 字段名可能不同）。',
+      '',
+      '2. 参考下面的形状，把 trainlog 合并写入 mcpServers（这只是常见的 HTTP 远程 MCP 配置形状，不是所有 Agent 都一致，请按你自己配置文件实际要求的字段名调整，不要盲目照搬）；不要覆盖原有其他 MCP 配置：',
+      '{',
+      '  "trainlog": {',
+      '    "type": "http",',
+      '    "url": "'+url+'",',
+      '    "headers": { "Authorization": "Bearer '+key+'" }',
+      '  }',
+      '}',
+      '',
+      '3. 保存配置。输出更新后的 mcpServers 片段供确认，但把 key 打码后再展示（比如只保留末尾 4 位），不要把完整明文 key 打印出来。',
+      '',
+      '4. 重要提醒：配置修改完成后，必须完全重启 Agent 程序，MCP 连接才会生效；当前会话不会加载新的 MCP 服务。',
+      '',
+      '5. 重启之后，直接用自然语言提问即可（例如"我今天的训练计划是什么"），Agent 会自动选择合适的 trainlog 工具完成读写，不要手动拼接或发起 HTTP 请求。'
+    ].join('\n');
+  }
+
+  function fetchToolCount(key){
+    return fetch('/api/mcp', {
+      method:'POST',
+      headers:{ 'content-type':'application/json', 'authorization':'Bearer '+key },
+      body: JSON.stringify({ jsonrpc:'2.0', id:1, method:'tools/list' })
+    }).then(function(r){ return r.json().catch(function(){ return {}; }); })
+      .then(function(payload){ return payload && payload.result && Array.isArray(payload.result.tools) ? payload.result.tools.length : null; })
+      .catch(function(){ return null; });
+  }
+
+  function showEmpty(){
+    loadingState.style.display='none'; keyState.style.display='none'; emptyState.style.display='block';
+  }
+  function showKey(key, createdAt, toolCount){
+    loadingState.style.display='none'; emptyState.style.display='none'; keyState.style.display='block';
+    keyInput.value=key; urlInput.value=serviceUrl();
+    keyMeta.textContent = createdAt ? ('创建于 ' + new Date(createdAt).toLocaleString('zh-CN')) : '';
+    promptArea.value=buildPrompt(key, toolCount);
+  }
+
+  function afterKey(key, createdAt){
+    showKey(key, createdAt, null);
+    fetchToolCount(key).then(function(count){ if(count!=null) promptArea.value=buildPrompt(key, count); });
+  }
+
+  function generate(){
+    return fetch('/api/account/mcp-key', { method:'POST', credentials:'same-origin' }).then(function(r){
+      return r.json().catch(function(){ return {}; });
+    }).then(function(payload){
+      if(!payload || !payload.ok) throw new Error('failed');
+      afterKey(payload.key, payload.createdAt);
+    }).catch(function(){ toastMsg('生成失败，请重试', true); showEmpty(); });
+  }
+
+  function loadOrGenerate(){
+    fetch('/api/account/mcp-key', { credentials:'same-origin' }).then(function(r){
+      return r.json().catch(function(){ return {}; });
+    }).then(function(payload){
+      if(payload && payload.ok && payload.hasKey && payload.key){ afterKey(payload.key, payload.createdAt); return; }
+      if(payload && payload.ok && !payload.hasKey){ generate(); return; }
+      throw new Error('load failed');
+    }).catch(function(){ toastMsg('加载失败，请重试', true); showEmpty(); });
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text).then(function(){ toastMsg('已复制'); }, function(){ toastMsg('复制失败，请手动选中', true); });
+    }
+    toastMsg('复制失败，请手动选中', true);
+    return Promise.resolve();
+  }
+  document.querySelectorAll('[data-copy]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var which=btn.getAttribute('data-copy');
+      var text = which==='key' ? keyInput.value : which==='url' ? urlInput.value : promptArea.value;
+      copyText(text);
+    });
+  });
+
+  genBtn.addEventListener('click', generate);
+  regenBtn.addEventListener('click', function(){
+    confirmModal({ title:'重新生成 API Key？', message:'重新生成后，旧的 Key 将立即失效，已连接的 AI 助手需要更新为新 Key。', confirmText:'重新生成', danger:true })
+      .then(function(ok){ if(ok) generate(); });
+  });
+  revokeBtn.addEventListener('click', function(){
+    confirmModal({ title:'撤销 API Key？', message:'撤销后，已连接的 AI 助手将无法再访问你的训练数据。', confirmText:'撤销', danger:true })
+      .then(function(ok){
+        if(!ok) return;
+        fetch('/api/account/mcp-key', { method:'DELETE', credentials:'same-origin' }).then(function(r){
+          return r.json().catch(function(){ return {}; });
+        }).then(function(payload){
+          if(!payload || !payload.ok) throw new Error('failed');
+          showEmpty(); toastMsg('已撤销');
+        }).catch(function(){ toastMsg('撤销失败，请重试', true); });
+      });
+  });
+
+  loadOrGenerate();
+})();
+</script>
+<script src="/pwa-register.js"></script></body>
+</html>
