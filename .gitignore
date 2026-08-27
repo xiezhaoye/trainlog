@@ -10,4 +10,11 @@ coverage/
 *.sqlite-*
 .DS_Store
 DS_Store
+
+# Internal working docs — kept locally, never published to the public repo.
 凭据.md
+架构.md
+部署.md
+错题本.md
+待办.md
+交接.md
