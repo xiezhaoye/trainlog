@@ -7,6 +7,7 @@
 <script>/* EFGH 换肤启动：localStorage v2.skin → html[data-skin]，防首帧闪烁 */
 (function(){var m={heat:'#f7f7f5',fire:'#121214',fresh:'#f3f8f6',efficient:'#f4f6f9'};var s=null;try{s=localStorage.getItem('v2.skin');}catch(e){}
 if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
+<script src="/skin-sync.js"></script>
 
 <title>设置 · TrainLog 砺志</title>
 <link rel="apple-touch-icon" sizes="180x180" href="/logo/apple-touch-icon.png" />
@@ -299,8 +300,14 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
   document.querySelectorAll('.skin-option').forEach(function(o){
     o.addEventListener('click', function(){
       var v=o.getAttribute('data-skin');
-      if(skin!==v){ skin=v; try{ localStorage.setItem(SKEY,skin); }catch(e){} applySkin(); toastMsg('已切换皮肤：'+SKIN_NAMES[skin]+' · 全局生效'); }
+      if(skin!==v){
+        skin=v; try{ localStorage.setItem(SKEY,skin); }catch(e){} applySkin(); toastMsg('已切换皮肤：'+SKIN_NAMES[skin]+' · 全局生效');
+        fetch('/api/account/skin', { method:'PUT', credentials:'same-origin', headers:{'content-type':'application/json'}, body: JSON.stringify({ skin: skin }) }).catch(function(){});
+      }
     });
+  });
+  document.addEventListener('v2:skin-synced', function(e){
+    var v=e.detail; if(!v||skin===v) return; skin=v; try{ localStorage.setItem(SKEY,skin); }catch(e){} applySkin();
   });
   function renderUnit(){
     document.querySelectorAll('#unitSeg button').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-u')===unit); });

@@ -284,7 +284,7 @@ async function sessionUser(request: Request, env: Env) {
   if (!token) return null;
   const session = await env.AUTH_KV.get<{ userId: string; email: string }>(`session:${token}`, 'json');
   if (!session) return null;
-  return env.DB.prepare('SELECT id, email, display_name FROM users WHERE id = ?').bind(session.userId).first<Row>();
+  return env.DB.prepare('SELECT id, email, display_name, skin FROM users WHERE id = ?').bind(session.userId).first<Row>();
 }
 
 async function localDevelopmentUser(env: Env) {
@@ -409,8 +409,10 @@ async function userByEmail(db: D1Database, email: string) {
   return db.prepare('SELECT * FROM users WHERE email = ?').bind(email).first<Row>();
 }
 
+const VALID_SKINS = new Set(['athletic', 'heat', 'fire', 'fresh', 'efficient']);
+
 function publicUser(user: Row) {
-  return { id: user.id, email: user.email, displayName: user.display_name || null };
+  return { id: user.id, email: user.email, displayName: user.display_name || null, skin: user.skin || null };
 }
 
 async function authApi(request: Request, env: Env, url: URL): Promise<Response | null> {
@@ -565,6 +567,13 @@ async function api(request: Request, env: Env, url: URL) {
     await db.prepare(`INSERT INTO action_library (user_id,library_json,updated_at) VALUES (?,?,?)
       ON CONFLICT(user_id) DO UPDATE SET library_json=excluded.library_json,updated_at=excluded.updated_at`).bind(userId, JSON.stringify(parts), now()).run();
     return json({ ok: true, parts });
+  }
+
+  if (pathname === '/api/account/skin' && request.method === 'PUT') {
+    const input = await body(request); const skin = stringValue(input.skin);
+    if (!VALID_SKINS.has(skin)) fail('无效的皮肤');
+    await db.prepare('UPDATE users SET skin = ?, updated_at = ? WHERE id = ?').bind(skin, now(), userId).run();
+    return json({ ok: true, skin });
   }
 
   if (pathname === '/api/day' && request.method === 'GET') {
