@@ -13,6 +13,12 @@ interface D1Database {
   prepare(query: string): D1PreparedStatement;
 }
 
+interface KVNamespace {
+  get<T = string>(key: string, type?: 'text' | 'json'): Promise<T | null>;
+  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+  delete(key: string): Promise<void>;
+}
+
 interface Fetcher {
   fetch(request: Request): Promise<Response>;
 }
