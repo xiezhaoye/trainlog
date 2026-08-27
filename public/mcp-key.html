@@ -258,12 +258,12 @@ html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg
     }).catch(function(){ toastMsg('生成失败，请重试', true); showEmpty(); });
   }
 
-  function loadOrGenerate(){
+  function loadState(){
     fetch('/api/account/mcp-key', { credentials:'same-origin' }).then(function(r){
       return r.json().catch(function(){ return {}; });
     }).then(function(payload){
       if(payload && payload.ok && payload.hasKey && payload.key){ afterKey(payload.key, payload.createdAt); return; }
-      if(payload && payload.ok && !payload.hasKey){ generate(); return; }
+      if(payload && payload.ok && !payload.hasKey){ showEmpty(); return; }
       throw new Error('load failed');
     }).catch(function(){ toastMsg('加载失败，请重试', true); showEmpty(); });
   }
@@ -301,7 +301,7 @@ html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg
       });
   });
 
-  loadOrGenerate();
+  loadState();
 })();
 </script>
 <script src="/pwa-register.js"></script></body>
