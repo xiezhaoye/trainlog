@@ -36,3 +36,5 @@ npm run dev
 ```
 
 打开 `http://localhost:8788`。`.dev.vars` 只开启本机开发令牌，不得提交或部署。
+
+公开入口为 `/`、`/login`、`/signup`；已有训练功能位于 `/app`。登录与注册设计源文件保存在 `design/`，发布副本在 `public/`，二者必须保持一致；认证行为由 `public/auth-bridge.js` 接入。

@@ -3,16 +3,21 @@ import { DEFAULT_ACTION_LIBRARY, normalizeActionLibrary, normalizeWeeklyPlan, WE
 export interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
+  AUTH_KV: KVNamespace;
   DEV_BYPASS_AUTH?: string;
   LOCAL_DEV_TOKEN?: string;
+  AUTH_DEV_SHOW_CODE?: string;
+  RESEND_API_KEY?: string;
+  RESEND_FROM_EMAIL?: string;
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 type Row = Record<string, unknown>;
 type AppError = Error & { status?: number };
 
-const json = (payload: unknown, status = 200) => Response.json(payload, {
+const json = (payload: unknown, status = 200, headers: HeadersInit = {}) => Response.json(payload, {
   status,
-  headers: { 'cache-control': 'no-store' }
+  headers: { 'cache-control': 'no-store', ...headers }
 });
 
 function fail(message: string, status = 400): never {
@@ -131,6 +136,156 @@ async function body(request: Request) {
   try { return await request.json() as Record<string, unknown>; } catch { return fail('Invalid JSON'); }
 }
 
+const encoder = new TextEncoder();
+const OTP_TTL_SECONDS = 5 * 60;
+const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
+const SHORT_SESSION_TTL_SECONDS = 24 * 60 * 60;
+const PASSWORD_ITERATIONS = 310_000;
+
+function emailValue(value: unknown) {
+  const email = stringValue(value).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) fail('请输入有效的邮箱地址');
+  return email;
+}
+
+function bytesToBase64(bytes: Uint8Array) {
+  let binary = '';
+  bytes.forEach((value) => { binary += String.fromCharCode(value); });
+  return btoa(binary);
+}
+
+function base64ToBytes(value: string) {
+  const binary = atob(value);
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
+
+function randomBytes(length: number) {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+function randomCode() {
+  return String(crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000).padStart(6, '0');
+}
+
+async function sha256(value: string) {
+  const digest = await crypto.subtle.digest('SHA-256', encoder.encode(value));
+  return bytesToBase64(new Uint8Array(digest));
+}
+
+async function passwordHash(password: string, salt?: Uint8Array) {
+  const actualSalt = salt || randomBytes(16);
+  const saltBuffer = actualSalt.buffer.slice(actualSalt.byteOffset, actualSalt.byteOffset + actualSalt.byteLength) as ArrayBuffer;
+  const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({
+    name: 'PBKDF2', hash: 'SHA-256', salt: saltBuffer, iterations: PASSWORD_ITERATIONS
+  }, key, 256);
+  return { salt: bytesToBase64(actualSalt), hash: bytesToBase64(new Uint8Array(bits)) };
+}
+
+function constantTimeEqual(left: string, right: string) {
+  if (left.length !== right.length) return false;
+  let mismatch = 0;
+  for (let index = 0; index < left.length; index += 1) mismatch |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  return mismatch === 0;
+}
+
+function cookieValue(request: Request, name: string) {
+  const prefix = `${name}=`;
+  return (request.headers.get('cookie') || '').split(';').map((item) => item.trim()).find((item) => item.startsWith(prefix))?.slice(prefix.length) || '';
+}
+
+function sessionCookie(request: Request, token: string, maxAge: number) {
+  const secure = new URL(request.url).protocol === 'https:' ? '; Secure' : '';
+  return `trainlog_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
+}
+
+function clearSessionCookie(request: Request) {
+  const secure = new URL(request.url).protocol === 'https:' ? '; Secure' : '';
+  return `trainlog_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
+}
+
+async function rateLimit(env: Env, bucket: string, max: number, windowSeconds: number) {
+  const current = Number(await env.AUTH_KV.get(`rate:${bucket}`) || '0');
+  if (current >= max) fail('操作过于频繁，请稍后再试', 429);
+  await env.AUTH_KV.put(`rate:${bucket}`, String(current + 1), { expirationTtl: windowSeconds });
+}
+
+async function turnstile(input: Record<string, unknown>, request: Request, env: Env) {
+  if (!env.TURNSTILE_SECRET_KEY) {
+    if (env.DEV_BYPASS_AUTH === 'true') return;
+    fail('认证安全校验尚未配置', 503);
+  }
+  const token = stringValue(input.turnstileToken);
+  if (!token) fail('请先完成人机验证');
+  const form = new FormData();
+  form.set('secret', env.TURNSTILE_SECRET_KEY);
+  form.set('response', token);
+  const ip = request.headers.get('CF-Connecting-IP');
+  if (ip) form.set('remoteip', ip);
+  const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: form });
+  const result = await response.json().catch(() => ({})) as { success?: boolean };
+  if (!response.ok || !result.success) fail('人机验证失败，请重试');
+}
+
+async function challengeKey(email: string, purpose: 'signup' | 'login') {
+  return `otp:${purpose}:${await sha256(email)}`;
+}
+
+async function issueOtp(email: string, purpose: 'signup' | 'login', env: Env) {
+  await rateLimit(env, `send:${purpose}:${await sha256(email)}`, 5, 15 * 60);
+  const code = randomCode();
+  const key = await challengeKey(email, purpose);
+  await env.AUTH_KV.put(key, JSON.stringify({ digest: await sha256(code), attempts: 0, expiresAt: Date.now() + OTP_TTL_SECONDS * 1000 }), { expirationTtl: OTP_TTL_SECONDS });
+
+  if (env.RESEND_API_KEY) {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: env.RESEND_FROM_EMAIL || 'TrainLog <onboarding@resend.dev>', to: [email],
+        subject: 'TrainLog 登录验证码',
+        html: `<p>你的 TrainLog 验证码是：</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>验证码 5 分钟内有效。若非本人操作，请忽略此邮件。</p>`
+      })
+    });
+    if (!response.ok) fail('验证码邮件发送失败，请稍后再试', 503);
+  } else if (env.DEV_BYPASS_AUTH !== 'true') {
+    fail('邮件服务尚未配置', 503);
+  }
+  return env.AUTH_DEV_SHOW_CODE === 'true' ? code : undefined;
+}
+
+async function verifyOtp(email: string, purpose: 'signup' | 'login', code: unknown, env: Env) {
+  const key = await challengeKey(email, purpose);
+  const challenge = await env.AUTH_KV.get<{ digest: string; attempts: number; expiresAt: number }>(key, 'json');
+  const provided = stringValue(code);
+  if (!challenge || challenge.expiresAt <= Date.now()) fail('验证码已过期，请重新获取');
+  if (challenge.attempts >= 5) { await env.AUTH_KV.delete(key); fail('验证码尝试次数过多，请重新获取'); }
+  if (!constantTimeEqual(challenge.digest, await sha256(provided))) {
+    await env.AUTH_KV.put(key, JSON.stringify({ ...challenge, attempts: challenge.attempts + 1 }), {
+      expirationTtl: Math.max(1, Math.ceil((challenge.expiresAt - Date.now()) / 1000))
+    });
+    fail('验证码不正确');
+  }
+  await env.AUTH_KV.delete(key);
+}
+
+async function createSession(request: Request, env: Env, user: Row, remember: boolean) {
+  const token = bytesToBase64(randomBytes(32)).replace(/[+/=]/g, '');
+  const ttl = remember ? SESSION_TTL_SECONDS : SHORT_SESSION_TTL_SECONDS;
+  await env.AUTH_KV.put(`session:${token}`, JSON.stringify({ userId: user.id, email: user.email }), { expirationTtl: ttl });
+  return sessionCookie(request, token, ttl);
+}
+
+async function sessionUser(request: Request, env: Env) {
+  const token = cookieValue(request, 'trainlog_session');
+  if (!token) return null;
+  const session = await env.AUTH_KV.get<{ userId: string; email: string }>(`session:${token}`, 'json');
+  if (!session) return null;
+  return env.DB.prepare('SELECT id, email, display_name FROM users WHERE id = ?').bind(session.userId).first<Row>();
+}
+
 async function requireUser(request: Request, env: Env) {
   const supplied = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '';
   if (env.DEV_BYPASS_AUTH === 'true' && supplied && supplied === env.LOCAL_DEV_TOKEN) {
@@ -140,7 +295,9 @@ async function requireUser(request: Request, env: Env) {
       .bind('local-dev-user', 'local@trainlog.life', 'Local Developer', stamp, stamp).run();
     return 'local-dev-user';
   }
-  return fail('登录功能尚未配置；本地开发请设置 .dev.vars', 401);
+  const user = await sessionUser(request, env);
+  if (user?.id) return String(user.id);
+  return fail('请先登录', 401);
 }
 
 async function ensureLibrary(db: D1Database, userId: string) {
@@ -222,7 +379,100 @@ async function listRecords(db: D1Database, userId: string, query: URLSearchParam
   return (await statement.all<Row>()).results.map(mapRecord);
 }
 
+async function userByEmail(db: D1Database, email: string) {
+  return db.prepare('SELECT * FROM users WHERE email = ?').bind(email).first<Row>();
+}
+
+function publicUser(user: Row) {
+  return { id: user.id, email: user.email, displayName: user.display_name || null };
+}
+
+async function authApi(request: Request, env: Env, url: URL): Promise<Response | null> {
+  const pathname = url.pathname;
+  if (!pathname.startsWith('/api/auth/')) return null;
+
+  if (pathname === '/api/auth/session' && request.method === 'GET') {
+    const user = await sessionUser(request, env);
+    if (!user) return json({ ok: false, error: '请先登录' }, 401);
+    return json({ ok: true, user: publicUser(user) });
+  }
+
+  if (pathname === '/api/auth/logout' && request.method === 'POST') {
+    const token = cookieValue(request, 'trainlog_session');
+    if (token) await env.AUTH_KV.delete(`session:${token}`);
+    return json({ ok: true }, 200, { 'set-cookie': clearSessionCookie(request) });
+  }
+
+  if (pathname === '/api/auth/signup/send-code' && request.method === 'POST') {
+    const input = await body(request); await turnstile(input, request, env);
+    const email = emailValue(input.email); const existing = await userByEmail(env.DB, email);
+    if (existing) return json({ ok: true, message: '若该邮箱可注册，验证码已发送' });
+    const devCode = await issueOtp(email, 'signup', env);
+    return json({ ok: true, expiresIn: OTP_TTL_SECONDS, ...(devCode ? { devCode } : {}) });
+  }
+
+  if (pathname === '/api/auth/login/send-code' && request.method === 'POST') {
+    const input = await body(request); await turnstile(input, request, env);
+    const email = emailValue(input.email); const existing = await userByEmail(env.DB, email);
+    if (!existing) return json({ ok: true, message: '若该邮箱已注册，验证码已发送' });
+    const devCode = await issueOtp(email, 'login', env);
+    return json({ ok: true, expiresIn: OTP_TTL_SECONDS, ...(devCode ? { devCode } : {}) });
+  }
+
+  if (pathname === '/api/auth/signup' && request.method === 'POST') {
+    const input = await body(request); const email = emailValue(input.email); const password = String(input.password || '');
+    if (password.length < 4) fail('登录密码至少 4 个字符');
+    if (await userByEmail(env.DB, email)) fail('该邮箱已注册，请直接登录', 409);
+    await verifyOtp(email, 'signup', input.code, env);
+    const derived = await passwordHash(password); const stamp = now();
+    const user: Row = { id: uid(), email, display_name: null };
+    await env.DB.prepare(`INSERT INTO users (id,email,display_name,password_hash,password_salt,password_kdf,email_verified_at,last_login_at,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?)`).bind(user.id, email, null, derived.hash, derived.salt, `PBKDF2-SHA-256/${PASSWORD_ITERATIONS}`, stamp, stamp, stamp, stamp).run();
+    await ensureLibrary(env.DB, String(user.id));
+    const cookie = await createSession(request, env, user, true);
+    return json({ ok: true, user: publicUser(user) }, 201, { 'set-cookie': cookie });
+  }
+
+  if (pathname === '/api/auth/login/password' && request.method === 'POST') {
+    const input = await body(request); const email = emailValue(input.email); const password = String(input.password || '');
+    await rateLimit(env, `password:${await sha256(email)}`, 10, 15 * 60);
+    const user = await userByEmail(env.DB, email);
+    if (!user?.password_hash || !user.password_salt) fail('邮箱或密码不正确', 401);
+    const derived = await passwordHash(password, base64ToBytes(String(user.password_salt)));
+    if (!constantTimeEqual(derived.hash, String(user.password_hash))) fail('邮箱或密码不正确', 401);
+    await env.DB.prepare('UPDATE users SET last_login_at = ?, updated_at = ? WHERE id = ?').bind(now(), now(), user.id).run();
+    const cookie = await createSession(request, env, user, input.remember !== false);
+    return json({ ok: true, user: publicUser(user) }, 200, { 'set-cookie': cookie });
+  }
+
+  if (pathname === '/api/auth/login/code' && request.method === 'POST') {
+    const input = await body(request); const email = emailValue(input.email); const user = await userByEmail(env.DB, email);
+    if (!user) fail('验证码不正确或账号不存在', 401);
+    await verifyOtp(email, 'login', input.code, env);
+    await env.DB.prepare('UPDATE users SET last_login_at = ?, updated_at = ? WHERE id = ?').bind(now(), now(), user.id).run();
+    const cookie = await createSession(request, env, user, input.remember !== false);
+    return json({ ok: true, user: publicUser(user) }, 200, { 'set-cookie': cookie });
+  }
+
+  return json({ ok: false, error: 'not found' }, 404);
+}
+
+async function staticPage(request: Request, env: Env, path: string, injectAuthBridge = false) {
+  const assetUrl = new URL(request.url);
+  assetUrl.pathname = path;
+  const response = await env.ASSETS.fetch(new Request(assetUrl, request));
+  if (!injectAuthBridge || !response.ok) return response;
+  const markup = await response.text();
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  return new Response(markup.replace('</body>', '<script src="/auth-bridge.js"></script></body>'), {
+    status: response.status, headers
+  });
+}
+
 async function api(request: Request, env: Env, url: URL) {
+  const authResponse = await authApi(request, env, url);
+  if (authResponse) return authResponse;
   const userId = await requireUser(request, env);
   const { DB: db } = env;
   const pathname = url.pathname;
@@ -326,16 +576,21 @@ export default {
     }
     // 设计稿保留为原始 HTML；只在 Worker 层映射无扩展名的公开路由，
     // 不改动设计文件本身的内容或相对 Logo/manifest 引用。
-    const publicPages: Record<string, string> = {
-      '/login': '/login.html',
-      '/signup': '/signup.html',
-      '/app': '/app.html'
+    const publicPages: Record<string, { path: string; bridge?: boolean }> = {
+      '/': { path: '/index.html' },
+      '/login': { path: '/login.html', bridge: true },
+      '/login.html': { path: '/login.html', bridge: true },
+      '/signup': { path: '/signup.html', bridge: true },
+      '/signup.html': { path: '/signup.html', bridge: true },
+      '/app': { path: '/app.html' },
+      '/app.html': { path: '/app.html' }
     };
-    const staticPath = publicPages[url.pathname];
-    if (staticPath) {
-      const assetUrl = new URL(request.url);
-      assetUrl.pathname = staticPath;
-      return env.ASSETS.fetch(new Request(assetUrl, request));
+    const staticRoute = publicPages[url.pathname];
+    if (staticRoute) {
+      if (staticRoute.path === '/app.html' && env.DEV_BYPASS_AUTH !== 'true' && !await sessionUser(request, env)) {
+        return Response.redirect(new URL('/login', url).toString(), 302);
+      }
+      return staticPage(request, env, staticRoute.path, staticRoute.bridge);
     }
     return env.ASSETS.fetch(request);
   }
