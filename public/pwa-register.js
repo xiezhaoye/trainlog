@@ -6,3 +6,9 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function () {});
   });
 }
+
+// Explicitly ask the browser not to evict this origin's storage under
+// pressure - belt-and-suspenders alongside the service worker above.
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().catch(function () {});
+}

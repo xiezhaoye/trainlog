@@ -617,6 +617,9 @@ export default {
       if (staticRoute.path === '/app.html' && env.DEV_BYPASS_AUTH !== 'true' && !await sessionUser(request, env)) {
         return Response.redirect(new URL('/login', url).toString(), 302);
       }
+      if (url.pathname === '/' && env.DEV_BYPASS_AUTH !== 'true' && await sessionUser(request, env)) {
+        return Response.redirect(new URL('/app', url).toString(), 302);
+      }
       return staticPage(request, env, staticRoute.path, staticRoute.bridge);
     }
     return env.ASSETS.fetch(request);
