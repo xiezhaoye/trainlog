@@ -98,12 +98,12 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
 <div class="stage">
   <div class="app" data-od-id="templates-page">
     <header class="topbar" data-od-id="templates-topbar">
-      <a class="back-chip" href="设置.html" data-od-id="tpl-back">
+      <a class="back-chip" href="settings.html" data-od-id="tpl-back">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
         返回
       </a>
       <div class="topbar__title">训练模板</div>
-      <a class="topbar__plus" href="模板编辑.html?new=1" aria-label="新增模板" data-od-id="add-template-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></a>
+      <a class="topbar__plus" href="template-edit.html?new=1" aria-label="新增模板" data-od-id="add-template-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></a>
     </header>
 
     <main class="content">
@@ -115,11 +115,11 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     </main>
 
     <nav class="tabbar" data-od-id="tabbar">
-      <a class="tabbar__btn" href="首页.html" data-od-id="tab-today">
+      <a class="tabbar__btn" href="app.html" data-od-id="tab-today">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>今天</a>
-      <a class="tabbar__btn" href="记录.html" data-od-id="tab-history">
+      <a class="tabbar__btn" href="records.html" data-od-id="tab-history">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="15" rx="3"/><path d="M4 10h16M8 3.5v3M16 3.5v3"/></svg>记录</a>
-      <a class="tabbar__btn is-active" href="设置.html" data-od-id="tab-content">
+      <a class="tabbar__btn is-active" href="settings.html" data-od-id="tab-content">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2h3.4l.5 2.3a7 7 0 0 1 1.9 1.1l2.2-.8 1.7 3-1.8 1.5a7.3 7.3 0 0 1 0 2.2l1.8 1.5-1.7 3-2.2-.8a7 7 0 0 1-1.9 1.1l-.5 2.3h-3.4l-.5-2.3a7 7 0 0 1-1.9-1.1l-2.2.8-1.7-3 1.8-1.5a7.3 7.3 0 0 1 0-2.2L4 8.8l1.7-3 2.2.8a7 7 0 0 1 1.9-1.1z"/><circle cx="12" cy="12" r="2.6"/></svg>设置</a>
     </nav>
 
@@ -156,7 +156,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     document.getElementById('cardioList').innerHTML=cardio.length? cardio.map(cardHTML).join('') : '<div class="empty-hint">还没有有氧模板</div>';
     document.getElementById('resList').innerHTML=res.length? res.map(cardHTML).join('') : '<div class="empty-hint">还没有抗阻模板</div>';
     document.querySelectorAll('[data-tpl]').forEach(function(el){
-      el.addEventListener('click', function(){ location.href='模板编辑.html?id='+encodeURIComponent(el.getAttribute('data-tpl')); });
+      el.addEventListener('click', function(){ location.href='template-edit.html?id='+encodeURIComponent(el.getAttribute('data-tpl')); });
     });
   }
 

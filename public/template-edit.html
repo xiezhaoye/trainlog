@@ -141,7 +141,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
 <div class="stage">
   <div class="app" data-od-id="template-edit-page">
     <header class="topbar" data-od-id="template-edit-topbar">
-      <a class="back-chip" href="训练模板.html" data-od-id="tpl-back">
+      <a class="back-chip" href="templates.html" data-od-id="tpl-back">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
         返回
       </a>
@@ -225,7 +225,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     clearTimeout(toastTimer);
     toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
   }
-  function goContent(msg){ try{ sessionStorage.setItem('v2.toast', msg); }catch(e){} location.href='训练模板.html'; }
+  function goContent(msg){ try{ sessionStorage.setItem('v2.toast', msg); }catch(e){} location.href='templates.html'; }
 
   /* ── 类型 ── */
   function renderType(){
@@ -384,7 +384,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     });
   });
 
-  document.getElementById('cancelBtn').addEventListener('click', function(){ location.href='训练模板.html'; });
+  document.getElementById('cancelBtn').addEventListener('click', function(){ location.href='templates.html'; });
 
   document.getElementById('delTemplateBtn').addEventListener('click', function(){
     if(!state) return;
