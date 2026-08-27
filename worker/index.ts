@@ -9,6 +9,7 @@ export interface Env {
   AUTH_DEV_SHOW_CODE?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM_EMAIL?: string;
+  TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET_KEY?: string;
 }
 
@@ -467,7 +468,8 @@ async function staticPage(request: Request, env: Env, path: string, injectAuthBr
   const markup = await response.text();
   const headers = new Headers(response.headers);
   headers.delete('content-length');
-  return new Response(markup.replace('</body>', '<script src="/auth-bridge.js"></script></body>'), {
+  const authConfig = `<script>window.TRAINLOG_TURNSTILE_SITE_KEY=${JSON.stringify(env.TURNSTILE_SITE_KEY || '')};</script>`;
+  return new Response(markup.replace('</body>', `${authConfig}<script src="/auth-bridge.js"></script></body>`), {
     status: response.status, headers
   });
 }

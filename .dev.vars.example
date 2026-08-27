@@ -3,6 +3,7 @@
 DEV_BYPASS_AUTH=true
 LOCAL_DEV_TOKEN=change-me-before-running
 AUTH_DEV_SHOW_CODE=true
+TURNSTILE_SITE_KEY=
 # Add these only when you intentionally test Resend delivery locally.
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=TrainLog <auth@trainlog.life>

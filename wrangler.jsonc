@@ -8,6 +8,9 @@
   ],
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-27",
+  "vars": {
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAEddDHA8Jc_PCfwC"
+  },
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
