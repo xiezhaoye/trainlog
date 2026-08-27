@@ -19,6 +19,42 @@
   }
 
   function validEmail(value) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value); }
+  var turnstileScript;
+  function loadTurnstile() {
+    if (!window.TRAINLOG_TURNSTILE_SITE_KEY) return Promise.resolve(null);
+    if (window.turnstile) return Promise.resolve(window.turnstile);
+    if (turnstileScript) return turnstileScript;
+    turnstileScript = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true; script.defer = true;
+      script.onload = function () { window.turnstile ? resolve(window.turnstile) : reject(new Error('人机验证未能加载')); };
+      script.onerror = function () { reject(new Error('人机验证未能加载，请检查网络后重试')); };
+      document.head.appendChild(script);
+    });
+    return turnstileScript;
+  }
+  function turnstileToken() {
+    var siteKey = window.TRAINLOG_TURNSTILE_SITE_KEY;
+    if (!siteKey) return Promise.resolve(''); // Local development bypasses server-side verification.
+    return loadTurnstile().then(function (challenge) {
+      return new Promise(function (resolve, reject) {
+        var mount = document.createElement('div');
+        mount.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;';
+        document.body.appendChild(mount);
+        var completed = false;
+        function cleanup() { if (mount.parentNode) mount.parentNode.removeChild(mount); }
+        var widgetId = challenge.render(mount, {
+          sitekey: siteKey,
+          size: 'invisible',
+          callback: function (token) { if (!completed) { completed = true; cleanup(); resolve(token); } },
+          'error-callback': function () { if (!completed) { completed = true; cleanup(); reject(new Error('人机验证失败，请重试')); } },
+          'expired-callback': function () { if (!completed) { completed = true; cleanup(); reject(new Error('人机验证已过期，请重试')); } }
+        });
+        challenge.execute(widgetId);
+      });
+    });
+  }
   function showDevCode(payload, input) {
     if (payload && payload.devCode) {
       console.info('[TrainLog local development] verification code:', payload.devCode);
@@ -52,7 +88,9 @@
       event.preventDefault(); event.stopImmediatePropagation();
       if (!validEmail(email.value)) { error.textContent = '请输入有效的邮箱地址'; email.focus(); return; }
       error.textContent = ''; send.disabled = true;
-      api('/api/auth/signup/send-code', { email: email.value }).then(function (payload) {
+      turnstileToken().then(function (token) {
+        return api('/api/auth/signup/send-code', { email: email.value, turnstileToken: token });
+      }).then(function (payload) {
         hint.style.display = 'block'; countdown(send); showDevCode(payload, code);
       }).catch(function (reason) { send.disabled = false; error.textContent = reason.message; });
     }, true);
@@ -87,7 +125,9 @@
       event.preventDefault(); event.stopImmediatePropagation();
       if (!validEmail(email.value)) { error.textContent = '请输入有效的邮箱地址'; email.focus(); return; }
       error.textContent = ''; send.disabled = true;
-      api('/api/auth/login/send-code', { email: email.value }).then(function (payload) {
+      turnstileToken().then(function (token) {
+        return api('/api/auth/login/send-code', { email: email.value, turnstileToken: token });
+      }).then(function (payload) {
         countdown(send); showDevCode(payload, code);
       }).catch(function (reason) { send.disabled = false; error.textContent = reason.message; });
     }, true);
