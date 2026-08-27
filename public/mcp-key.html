@@ -9,7 +9,7 @@
 if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
 <script src="/skin-sync.js"></script>
 
-<title>MCP API Key · TrainLog 砺志</title>
+<title>MCP设置 · TrainLog 砺志</title>
 <link rel="apple-touch-icon" sizes="180x180" href="/logo/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 <meta name="apple-mobile-web-app-title" content="砺志" />
@@ -62,7 +62,8 @@ h1,h2,p{margin:0;}
 .field-input{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid var(--border-bright);background:var(--raised);
   padding:0 12px;font-family:var(--font-mono);font-size:12.5px;color:var(--fg);}
 .field-textarea{width:100%;min-height:260px;border-radius:12px;border:1px solid var(--border-bright);background:var(--raised);
-  padding:12px;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;color:var(--fg);white-space:pre;resize:vertical;}
+  padding:12px;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;color:var(--fg);
+  white-space:pre-wrap;word-break:break-all;overflow-x:hidden;overflow-y:auto;resize:none;}
 .meta-line{font-size:12px;color:var(--faint);margin-top:8px;}
 
 .btn-primary-sm{flex:1;min-height:48px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:800;}
@@ -112,7 +113,7 @@ html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
         返回
       </a>
-      <div class="topbar__title">MCP API Key</div>
+      <div class="topbar__title">MCP设置</div>
       <div class="topbar__spacer"></div>
     </header>
 
@@ -126,33 +127,25 @@ html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg
       <div id="keyState" style="display:none;">
         <div class="zone">Key 信息</div>
         <div class="card" data-od-id="mcp-key-info">
-          <div class="hint">这把 Key 会一直在这里可见，因为撤销/重新生成本身不需要密码确认，随时可查看和随时可作废，安全等级是一样的。</div>
+          <div class="hint">生成密钥，交给你自己的AI助手读写训练数据。</div>
+          <div class="actions-row" style="margin-top:12px;">
+            <button class="btn-ghost-sm" id="regenBtn" type="button" data-od-id="mcp-key-regen">重新生成</button>
+            <button class="btn-danger-sm" id="revokeBtn" type="button" data-od-id="mcp-key-revoke">撤销</button>
+          </div>
           <div class="field-row">
             <input class="field-input" id="keyInput" type="text" readonly />
             <button class="btn-copy" data-copy="key" type="button">复制</button>
           </div>
           <div class="meta-line" id="keyMeta">创建于 --</div>
-          <div class="actions-row">
-            <button class="btn-ghost-sm" id="regenBtn" type="button" data-od-id="mcp-key-regen">重新生成</button>
-            <button class="btn-danger-sm" id="revokeBtn" type="button" data-od-id="mcp-key-revoke">撤销</button>
-          </div>
-        </div>
-
-        <div class="zone">服务 URL</div>
-        <div class="card">
-          <div class="field-row" style="margin-top:0;">
-            <input class="field-input" id="urlInput" type="text" readonly />
-            <button class="btn-copy" data-copy="url" type="button">复制</button>
-          </div>
         </div>
 
         <div class="zone">接入 Prompt</div>
         <div class="card">
           <div class="hint">把下面这段完整复制给你的 AI 助手，它会自己找到本机 MCP 配置文件并完成接入。</div>
-          <textarea class="field-textarea" id="promptArea" readonly></textarea>
-          <div class="actions-row">
+          <div class="actions-row" style="margin-top:12px;">
             <button class="btn-primary-sm" data-copy="prompt" type="button">复制完整 Prompt</button>
           </div>
+          <textarea class="field-textarea" id="promptArea" readonly style="margin-top:12px;"></textarea>
         </div>
       </div>
 
@@ -172,7 +165,7 @@ html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg
     toast.classList.toggle('is-err',!!isErr);
     toast.classList.add('is-in');
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },1500);
   }
 
   function confirmModal(opts){
@@ -193,7 +186,7 @@ html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg
   }
 
   var emptyState=document.getElementById('emptyState'), keyState=document.getElementById('keyState'), loadingState=document.getElementById('loadingState');
-  var keyInput=document.getElementById('keyInput'), urlInput=document.getElementById('urlInput'), keyMeta=document.getElementById('keyMeta'), promptArea=document.getElementById('promptArea');
+  var keyInput=document.getElementById('keyInput'), keyMeta=document.getElementById('keyMeta'), promptArea=document.getElementById('promptArea');
   var genBtn=document.getElementById('genBtn'), regenBtn=document.getElementById('regenBtn'), revokeBtn=document.getElementById('revokeBtn');
 
   function serviceUrl(){ return location.origin + '/api/mcp'; }
@@ -246,7 +239,7 @@ html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg
   }
   function showKey(key, createdAt, toolCount){
     loadingState.style.display='none'; emptyState.style.display='none'; keyState.style.display='block';
-    keyInput.value=key; urlInput.value=serviceUrl();
+    keyInput.value=key;
     keyMeta.textContent = createdAt ? ('创建于 ' + new Date(createdAt).toLocaleString('zh-CN')) : '';
     promptArea.value=buildPrompt(key, toolCount);
   }
@@ -285,7 +278,7 @@ html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg
   document.querySelectorAll('[data-copy]').forEach(function(btn){
     btn.addEventListener('click', function(){
       var which=btn.getAttribute('data-copy');
-      var text = which==='key' ? keyInput.value : which==='url' ? urlInput.value : promptArea.value;
+      var text = which==='key' ? keyInput.value : promptArea.value;
       copyText(text);
     });
   });

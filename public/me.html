@@ -61,6 +61,7 @@ h1,h2,p{margin:0;}
 .setting-row:hover .setting-row__name{color:var(--accent);transition:color .15s ease;}
 .setting-row__chevron{flex:none;color:var(--faint);}
 .setting-row__chevron svg{width:16px;height:16px;}
+.setting-row__status{flex:none;font-size:13px;font-weight:700;color:var(--accent);padding:7px 14px;border-radius:9px;background:var(--acc-tint);}
 
 .zone{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.12em;margin:30px 2px 14px;}
 .zone:first-of-type{margin-top:4px;}
@@ -161,15 +162,14 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
         </button>
       </div>
 
-      <div class="zone">开发者</div>
+      <div class="zone">AI设置</div>
       <div class="card">
         <a class="setting-row" href="mcp-key.html" data-od-id="setting-mcp-key">
           <span class="setting-row__icon setting-row__icon--mcp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9h6v6H9z"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg></span>
           <span class="setting-row__body">
             <span class="setting-row__name">MCP API Key</span>
-            <span class="setting-row__desc">生成密钥，交给你自己的 AI 助手读写训练数据</span>
           </span>
-          <span class="setting-row__chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          <span class="setting-row__status" id="mcpStatusLabel">设置</span>
         </a>
       </div>
 
@@ -271,7 +271,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     toast.classList.toggle('is-err',!!isErr);
     toast.classList.add('is-in');
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },1500);
   }
   function applySkin(){
     document.documentElement.setAttribute('data-skin', skin);
@@ -363,7 +363,18 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     });
   });
 
+  /* ── MCP API Key 状态（设置 / 查看） ── */
+  function loadMcpKeyStatus(){
+    var label=document.getElementById('mcpStatusLabel');
+    fetch('/api/account/mcp-key', { credentials:'same-origin' }).then(function(r){
+      return r.json().catch(function(){ return {}; });
+    }).then(function(payload){
+      label.textContent = (payload && payload.ok && payload.hasKey) ? '查看' : '设置';
+    }).catch(function(){});
+  }
+
   loadAccount();
+  loadMcpKeyStatus();
 })();
 </script>
 <script src="/pwa-register.js"></script></body>

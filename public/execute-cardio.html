@@ -395,7 +395,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     toast.classList.toggle('is-err', !!isErr);
     toast.classList.add('is-in');
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); }, 2400);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); }, 1500);
   }
   function goHome(){ location.href='app.html'; }
   function goBack(){ var d = bkDate || (params && params.get('date')) || ''; location.href = d ? ('records.html?date='+encodeURIComponent(d)) : 'app.html'; }
