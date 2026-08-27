@@ -39,8 +39,12 @@
     if (!siteKey) return Promise.resolve(''); // Local development bypasses server-side verification.
     return loadTurnstile().then(function (challenge) {
       return new Promise(function (resolve, reject) {
+        // Cloudflare warns that even an "invisible" widget can fall back to an
+        // interactive challenge for some requests; hiding this off-screen would
+        // leave that challenge unreachable and the request would hang until it
+        // times out, so the container stays on-screen (just visually minimal).
         var mount = document.createElement('div');
-        mount.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;';
+        mount.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2147483000;';
         document.body.appendChild(mount);
         var completed = false;
         function cleanup() { if (mount.parentNode) mount.parentNode.removeChild(mount); }
