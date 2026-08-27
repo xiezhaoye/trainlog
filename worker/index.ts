@@ -1,4 +1,4 @@
-import { DEFAULT_ACTION_LIBRARY, normalizeActionLibrary, normalizeWeeklyPlan, WEEKDAY_KEYS } from '../shared/training';
+import { DEFAULT_ACTION_LIBRARY, DEFAULT_TEMPLATES, DEFAULT_WEEKLY_PLAN_KEYS, normalizeActionLibrary, normalizeWeeklyPlan, WEEKDAY_KEYS } from '../shared/training';
 
 export interface Env {
   ASSETS: Fetcher;
@@ -315,6 +315,28 @@ async function ensureLibrary(db: D1Database, userId: string) {
   return parts;
 }
 
+async function ensureDefaultTemplatesAndPlan(db: D1Database, userId: string) {
+  const existing = await db.prepare('SELECT id FROM templates WHERE user_id = ? LIMIT 1').bind(userId).first<Row>();
+  if (existing) return;
+  const stamp = now();
+  const idByKey: Record<string, string> = {};
+  for (const template of DEFAULT_TEMPLATES) {
+    const id = uid();
+    idByKey[template.key] = id;
+    const parts = template.type === 'resistance' ? JSON.stringify(template.parts || []) : null;
+    const exercises = template.type === 'resistance' ? JSON.stringify(template.exercises || []) : null;
+    await db.prepare(`INSERT INTO templates (id,user_id,type,name,cardio_action,cardio_speed,cardio_duration,resistance_parts,resistance_exercises,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
+      .bind(id, userId, template.type, template.name, template.cardioAction ?? null, template.cardioSpeed ?? null, template.cardioDuration ?? null, parts, exercises, stamp, stamp)
+      .run();
+  }
+  const plan = Object.fromEntries(WEEKDAY_KEYS.map((day) => [
+    day, (DEFAULT_WEEKLY_PLAN_KEYS[day] || []).map((key) => idByKey[key]).filter(Boolean)
+  ]));
+  await db.prepare(`INSERT INTO weekly_plan_versions (user_id,effective_from,plan_json,updated_at) VALUES (?,?,?,?)
+    ON CONFLICT(user_id,effective_from) DO NOTHING`).bind(userId, '1970-01-01', JSON.stringify(plan), stamp).run();
+}
+
 async function templateById(db: D1Database, userId: string, id: string) {
   return db.prepare('SELECT * FROM templates WHERE user_id = ? AND id = ?').bind(userId, id).first<Row>();
 }
@@ -433,6 +455,7 @@ async function authApi(request: Request, env: Env, url: URL): Promise<Response |
     await env.DB.prepare(`INSERT INTO users (id,email,display_name,password_hash,password_salt,password_kdf,email_verified_at,last_login_at,created_at,updated_at)
       VALUES (?,?,?,?,?,?,?,?,?,?)`).bind(user.id, email, null, derived.hash, derived.salt, `PBKDF2-SHA-256/${PASSWORD_ITERATIONS}`, stamp, stamp, stamp, stamp).run();
     await ensureLibrary(env.DB, String(user.id));
+    await ensureDefaultTemplatesAndPlan(env.DB, String(user.id));
     const cookie = await createSession(request, env, user, true);
     return json({ ok: true, user: publicUser(user) }, 201, { 'set-cookie': cookie });
   }
