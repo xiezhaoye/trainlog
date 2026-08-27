@@ -50,7 +50,7 @@
         function cleanup() { if (mount.parentNode) mount.parentNode.removeChild(mount); }
         var widgetId = challenge.render(mount, {
           sitekey: siteKey,
-          size: 'invisible',
+          appearance: 'execute',
           callback: function (token) { if (!completed) { completed = true; cleanup(); resolve(token); } },
           'error-callback': function () { if (!completed) { completed = true; cleanup(); reject(new Error('人机验证失败，请重试')); } },
           'expired-callback': function () { if (!completed) { completed = true; cleanup(); reject(new Error('人机验证已过期，请重试')); } }
