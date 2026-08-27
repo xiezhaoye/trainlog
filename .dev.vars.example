@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local-only development. Do not commit .dev.vars.
+# The current static V2 interface sends this token only to the local Worker.
+DEV_BYPASS_AUTH=true
+LOCAL_DEV_TOKEN=change-me-before-running

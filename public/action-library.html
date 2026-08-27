@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#18191b" />
+<script>/* EFGH 换肤启动：localStorage v2.skin → html[data-skin]，防首帧闪烁 */
+(function(){var m={heat:'#f7f7f5',fire:'#121214',fresh:'#f3f8f6',efficient:'#f4f6f9'};var s=null;try{s=localStorage.getItem('v2.skin');}catch(e){}
+if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
+
+<title>动作库 · 训练（竞训深色 · 皮肤A）</title>
+<style>
+:root {
+  --bg:#18191b; --surface:#232527; --raised:#2c2e31;
+  --fg:#ececec; --muted:#9da1a5; --faint:#767a7e;
+  --border:#35383b; --border-bright:#4a4d51;
+  --accent:#a2d43f; --accent-strong:#86b52e; --on-accent:#1f2517;
+  --ok:#4db06f; --danger:#ea4a4a; --warn:#d9a23f;
+  --cat-res:#d99b3e; --cat-cardio:#3cb8cf;
+  --acc-tint: color-mix(in oklch, var(--accent) 14%, transparent);
+  --danger-tint: color-mix(in oklch, var(--danger) 14%, transparent);
+  --shadow-float: 0 18px 44px rgba(0,0,0,.5);
+  --font-display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  --font-mono: "SF Mono",Menlo,ui-monospace,monospace;
+  --safe-top: env(safe-area-inset-top,0px);
+  --safe-bottom: env(safe-area-inset-bottom,0px);
+}
+:root { --body-bg:#0c0d0f; --app-ring:0 0 0 1px rgba(255,255,255,.04); --scrim-bg:rgba(5,6,8,.62); --seg-shadow:0 1px 4px rgba(0,0,0,.35); --ok-text:#07130b; --swatch-ring:0 0 0 1px rgba(255,255,255,.14); }
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;height:100%;}
+body{margin:0;height:100%;background:var(--body-bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-touch-callout:none;}
+input{font:inherit;color:var(--fg);}
+a{color:inherit;text-decoration:none;}
+h1,h2,h3,p{margin:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.stage{min-height:100%;display:flex;justify-content:center;}
+.app{position:relative;width:100%;max-width:430px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--app-ring);}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(8px + var(--safe-top)) 12px 10px;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
+.topbar__title{font-size:17px;font-weight:700;text-align:center;flex:1;}
+.back-chip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);font-size:15px;}
+
+.back-chip svg{width:16px;height:16px;}
+.topbar__plus{width:44px;height:44px;display:grid;place-items:center;color:var(--accent);border-radius:12px;}
+.topbar__plus:hover{background:var(--acc-tint);}
+.topbar__plus svg{width:20px;height:20px;}
+
+.content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 20px 24px;}
+.content::-webkit-scrollbar{width:0;}
+
+.hint{font-size:13px;color:var(--faint);line-height:1.6;margin:2px 2px 14px;}
+.segmented{display:flex;background:var(--raised);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:16px;}
+.segmented button{flex:1;min-height:44px;border-radius:9px;color:var(--muted);font-size:14px;font-weight:600;transition:background .15s ease,color .15s ease;}
+.segmented button.is-active{background:var(--bg);color:var(--fg);box-shadow:var(--seg-shadow);}
+.unit-legend{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);letter-spacing:.08em;margin:-8px 2px 14px;}
+
+.lib-part{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:12px 14px 14px;margin-bottom:12px;}
+.lib-part__head{display:flex;align-items:center;gap:8px;border-bottom:1px dashed var(--border);padding-bottom:9px;margin-bottom:10px;}
+.lib-part__name{flex:1;font-size:16px;font-weight:700;}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;color:var(--muted);border-radius:10px;}
+.icon-btn:hover{color:var(--accent);}
+.icon-btn--danger:hover{color:var(--danger);}
+.icon-btn svg{width:17px;height:17px;}
+.lib-part__actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.name-chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 6px 0 14px;border-radius:10px;background:var(--raised);border:1px solid var(--border-bright);color:var(--fg);font-size:14px;font-weight:600;}
+.name-chip__del{width:26px;height:26px;display:grid;place-items:center;color:var(--faint);border-radius:7px;}
+.name-chip__del:hover{color:var(--danger);}
+.chip-add-btn{min-height:36px;padding:0 12px;border-radius:10px;display:inline-flex;align-items:center;gap:4px;border:1px dashed var(--border-bright);color:var(--muted);font-size:14px;}
+.chip-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.chip-add-btn svg{width:14px;height:14px;}
+.empty-hint{font-family:var(--font-mono);font-size:12px;color:var(--faint);text-align:center;padding:26px 0;letter-spacing:.06em;}
+
+.tabbar{flex:none;display:flex;border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);background:var(--bg);}
+.tabbar__btn{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font-size:11px;transition:color .15s ease;}
+.tabbar__btn svg{width:20px;height:20px;}
+.tabbar__btn.is-active{color:var(--accent);}
+
+/* 弹层 */
+.scrim{position:absolute;inset:0;z-index:40;background:var(--scrim-bg);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.scrim.is-open{opacity:1;pointer-events:auto;}
+.surface{background:var(--surface);border:1px solid var(--border);border-radius:16px;}
+.modal{position:absolute;left:12px;right:12px;top:50%;transform:translateY(calc(-50% + 12px)) scale(.98);z-index:41;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow-float);
+  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;}
+.modal.is-open{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1);}
+.modal__title{text-align:center;font-size:17px;font-weight:700;}
+.modal__sub{text-align:center;font-size:13px;color:var(--muted);margin-top:7px;line-height:1.5;}
+.modal-input{width:100%;height:46px;border:0;border-bottom:1px solid var(--border-bright);background:transparent;font-size:16px;font-weight:600;text-align:center;margin-top:16px;transition:border-color .15s ease;}
+.modal-input:focus{outline:none;border-bottom-color:var(--accent);}
+.modal__actions{display:flex;gap:10px;margin-top:20px;}
+.btn-primary-sm{flex:1;min-height:48px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:800;}
+.btn-primary-sm:hover{background:var(--accent-strong);}
+.btn-ghost-sm{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--border-bright);color:var(--fg);font-size:15px;font-weight:600;}
+.btn-ghost-sm:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger-sm{flex:1;min-height:48px;border-radius:12px;background:var(--danger);color:#fff;font-size:15px;font-weight:800;}
+.btn-danger-sm:hover{background:color-mix(in oklch,var(--danger) 88%,black);}
+
+.toast{position:absolute;left:14px;right:14px;top:calc(var(--safe-top) + 10px);z-index:60;background:var(--raised);border:1px solid var(--border-bright);
+  border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--fg);text-align:center;
+  opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
+.toast.is-in{opacity:1;transform:translateY(0);}
+.toast.is-err{border-color:var(--danger);color:var(--danger);}
+
+/* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
+html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--cat-res:#a8550b;--cat-cardio:#0e7490;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,27,.14);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,27,.22);}
+html[data-skin="heat"] .ring__num,html[data-skin="heat"] .stat-tile__num,html[data-skin="heat"] .set-view-row__weight,html[data-skin="heat"] .set-view-row__reps,html[data-skin="heat"] .cardio-view__num,html[data-skin="heat"] .stepper__value,html[data-skin="heat"] .cal-cell__num{font-weight:900;}
+html[data-skin="heat"] .ring__num{letter-spacing:-.03em;}
+html[data-skin="fire"]{--bg:#121214;--surface:#1c1e22;--raised:#26282d;--fg:#f4f3f1;--muted:#a9a3a0;--faint:#8b8782;--border:#3c3f45;--border-bright:#55585e;--accent:#ff7024;--accent-strong:#dd4a0d;--on-accent:#1c0f06;--ok:#3ecb72;--danger:#ff5040;--warn:#f8b04a;--cat-res:#f9992e;--cat-cardio:#a9dc4a;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(10,6,2,.62);--body-bg:#0a0b0e;--app-ring:0 0 0 1px rgba(255,255,255,.06);--scrim-bg:rgba(10,6,2,.68);--seg-shadow:0 1px 4px rgba(0,0,0,.35);--ok-text:#07130b;--swatch-ring:0 0 0 1px rgba(255,255,255,.18);}
+html[data-skin="fresh"]{--bg:#f3f8f6;--surface:#ffffff;--raised:#eef3f0;--fg:#1c2321;--muted:#59625f;--faint:#6f7874;--border:#e4e9e6;--border-bright:#cfd7d3;--accent:#26794a;--accent-strong:#1f633b;--on-accent:#ffffff;--ok:#15803c;--danger:#cf4436;--warn:#97660f;--cat-res:#8a6510;--cat-cardio:#1f6f78;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(31,42,38,.12);--body-bg:#dfe8e3;--app-ring:0 0 0 1px rgba(31,42,38,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(31,42,38,.09);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(31,42,38,.16);}
+html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg:#1c2028;--muted:#5a616b;--faint:#717a85;--border:#e3e7ee;--border-bright:#c2cad5;--accent:#3a62d6;--accent-strong:#234aa0;--on-accent:#ffffff;--ok:#2353b8;--danger:#cf4436;--warn:#99630f;--cat-res:#8a5f12;--cat-cardio:#3561ad;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(23,30,40,.12);--body-bg:#e9edf4;--app-ring:0 0 0 1px rgba(23,30,40,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,40,.10);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,40,.16);}
+html[data-skin="efficient"] .action-row,html[data-skin="efficient"] .set-row,html[data-skin="efficient"] .session-ex,html[data-skin="efficient"] .schedule-row,html[data-skin="efficient"] .set-view-row,html[data-skin="efficient"] .setting-row,html[data-skin="efficient"] .plan-row{border-color:color-mix(in oklch,var(--border) 55%,var(--bg) 45%);}
+html[data-skin="efficient"] .topbar,html[data-skin="efficient"] .dock,html[data-skin="efficient"] .bottom-bar,html[data-skin="efficient"] .tabbar,html[data-skin="efficient"] .cal-card,html[data-skin="efficient"] .day-card,html[data-skin="efficient"] .set-card,html[data-skin="efficient"] .note-card,html[data-skin="efficient"] .modal,html[data-skin="efficient"] .sheet,html[data-skin="efficient"] .surface,html[data-skin="efficient"] .card{border-color:color-mix(in oklch,var(--border) 70%,var(--bg) 30%);}
+html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__num,html[data-skin="efficient"] .set-view-row__weight,html[data-skin="efficient"] .set-view-row__reps,html[data-skin="efficient"] .cardio-view__num,html[data-skin="efficient"] .stepper__value,html[data-skin="efficient"] .cal-cell__num{letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+
+</style>
+</head>
+<body data-skin="athletic">
+<div class="stage">
+  <div class="app" data-od-id="library-page">
+    <header class="topbar" data-od-id="library-topbar">
+      <a class="back-chip" href="设置.html" data-od-id="lib-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        返回
+      </a>
+      <div class="topbar__title">动作库</div>
+      <button class="topbar__plus" id="addPartBtn" type="button" aria-label="新增部位" data-od-id="add-part-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    </header>
+
+    <main class="content">
+      <div class="hint">这里的部位和动作会出现在模板与「新增动作」的选择列表里。</div>
+      <div id="partsList" data-od-id="parts-list"></div>
+    </main>
+
+    <nav class="tabbar" data-od-id="tabbar">
+      <a class="tabbar__btn" href="首页.html" data-od-id="tab-today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>今天</a>
+      <a class="tabbar__btn" href="记录.html" data-od-id="tab-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="15" rx="3"/><path d="M4 10h16M8 3.5v3M16 3.5v3"/></svg>记录</a>
+      <a class="tabbar__btn is-active" href="设置.html" data-od-id="tab-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2h3.4l.5 2.3a7 7 0 0 1 1.9 1.1l2.2-.8 1.7 3-1.8 1.5a7.3 7.3 0 0 1 0 2.2l1.8 1.5-1.7 3-2.2-.8a7 7 0 0 1-1.9 1.1l-.5 2.3h-3.4l-.5-2.3a7 7 0 0 1-1.9-1.1l-2.2.8-1.7-3 1.8-1.5a7.3 7.3 0 0 1 0-2.2L4 8.8l1.7-3 2.2.8a7 7 0 0 1 1.9-1.1z"/><circle cx="12" cy="12" r="2.6"/></svg>设置</a>
+    </nav>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<script src="/config.js"></script>
+<script src="assets/app.js"></script>
+<script src="v2-bridge.js"></script>
+<script>
+(function(){
+  'use strict';
+  // 动作库数据来自真实后端（V2.library()），本页持有自己的工作副本。
+  var library=[];
+
+  var toast=document.getElementById('toast'), toastTimer;
+  function toastMsg(msg,isErr){
+    toast.textContent=msg;
+    toast.classList.toggle('is-err',!!isErr);
+    toast.classList.add('is-in');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
+  }
+
+  /* 动作库 CRUD */
+  function partHTML(p){
+    var chips=p.actions.map(function(a,i){
+      return '<span class="name-chip" data-pi="'+library.indexOf(p)+'" data-ai="'+i+'">'+a+
+        '<button class="name-chip__del" data-role="del-action" aria-label="删除动作"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+
+      '</span>';
+    }).join('');
+    return '<div class="lib-part" data-od-id="lib-part-'+p.name+'">'+
+      '<div class="lib-part__head">'+
+        '<div class="lib-part__name">'+p.name+'</div>'+
+        '<button class="icon-btn" data-role="rename-part" aria-label="重命名部位"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10-4-4L4 16v4z"/></svg></button>'+
+        '<button class="icon-btn icon-btn--danger" data-role="del-part" aria-label="删除部位"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13"/></svg></button>'+
+      '</div>'+
+      '<div class="lib-part__actions">'+
+        chips+
+        (p.actions.length?'':'<span class="hint" style="margin:0;font-size:12.5px;">还没有动作</span>')+
+        '<button class="chip-add-btn" data-role="add-action" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>添加动作</button>'+
+      '</div>'+
+    '</div>';
+  }
+  function cardIdx(card){ return library.indexOf(library.filter(function(p){return p.name===card.querySelector('.lib-part__name').textContent;})[0]); }
+  function storeAndRender(){
+    render();
+    V2.saveLibrary(library).catch(function(err){ toastMsg('保存失败：' + ((err && err.message) || err), true); });
+  }
+  function render(){
+    var box=document.getElementById('partsList');
+    box.innerHTML=library.length? library.map(partHTML).join('') : '<div class="empty-hint">还没有部位，点右上角 + 添加一个</div>';
+    box.querySelectorAll('[data-role="rename-part"]').forEach(function(b){
+      b.addEventListener('click', function(){ var idx=cardIdx(b.closest('.lib-part')); promptModal({title:'重命名部位',initialValue:library[idx].name,confirmText:'保存'}).then(function(v){ if(v!==null){ library[idx].name=v; storeAndRender(); } }); });
+    });
+    box.querySelectorAll('[data-role="del-part"]').forEach(function(b){
+      b.addEventListener('click', function(){ var idx=cardIdx(b.closest('.lib-part')); confirmModal({title:'删除「'+library[idx].name+'」？',message:'该部位下所有动作也会一并删除；已保存的模板/记录不受影响。',confirmText:'删除',danger:true}).then(function(ok){ if(ok){ library.splice(idx,1); storeAndRender(); } }); });
+    });
+    box.querySelectorAll('[data-role="add-action"]').forEach(function(b){
+      b.addEventListener('click', function(){ var idx=cardIdx(b.closest('.lib-part')); promptModal({title:'添加动作',placeholder:'例如：哑铃侧平举',confirmText:'添加'}).then(function(v){ if(v!==null){ library[idx].actions.push(v); storeAndRender(); } }); });
+    });
+    box.querySelectorAll('[data-role="del-action"]').forEach(function(b){
+      b.addEventListener('click', function(){ var c=b.closest('.name-chip'); var pi=Number(c.getAttribute('data-pi')); var ai=Number(c.getAttribute('data-ai')); library[pi].actions.splice(ai,1); storeAndRender(); });
+    });
+    box.querySelectorAll('.name-chip[data-pi]').forEach(function(c){
+      c.addEventListener('click', function(e){ if(e.target.closest('[data-role="del-action"]')) return; var pi=Number(c.getAttribute('data-pi')); var ai=Number(c.getAttribute('data-ai')); promptModal({title:'重命名动作',initialValue:library[pi].actions[ai],confirmText:'保存'}).then(function(v){ if(v!==null){ library[pi].actions[ai]=v; storeAndRender(); } }); });
+    });
+  }
+  document.getElementById('addPartBtn').addEventListener('click', function(){
+    promptModal({title:'新增部位',placeholder:'例如：肩',confirmText:'添加'}).then(function(v){ if(v==null) return; library.push({name:v,actions:[]}); storeAndRender(); });
+  });
+
+  /* 弹层 */
+  function promptModal(opts){
+    return new Promise(function(resolve){
+      var scrim=document.createElement('div'); scrim.className='scrim';
+      var modal=document.createElement('div'); modal.className='modal surface';
+      modal.innerHTML='<div class="modal__title">'+opts.title+'</div>'+
+        '<input class="modal-input" type="text" value="'+(opts.initialValue||'').replace(/"/g,'&quot;')+'" placeholder="'+(opts.placeholder||'')+'"/>'+
+        '<div class="modal__actions"><button class="btn-ghost-sm" data-role="cancel">取消</button><button class="btn-primary-sm" data-role="ok">'+(opts.confirmText||'确定')+'</button></div>';
+      var app=document.querySelector('.app');
+      app.appendChild(scrim); app.appendChild(modal);
+      var inp=modal.querySelector('.modal-input');
+      requestAnimationFrame(function(){ scrim.classList.add('is-open'); modal.classList.add('is-open'); inp.focus(); inp.select(); });
+      function close(v){ scrim.classList.remove('is-open'); modal.classList.remove('is-open'); setTimeout(function(){ modal.remove(); scrim.remove(); },180); resolve(v); }
+      function ok(){ var v=inp.value.trim(); if(!v){ inp.focus(); return; } close(v); }
+      modal.querySelector('[data-role="cancel"]').addEventListener('click', function(){ close(null); });
+      modal.querySelector('[data-role="ok"]').addEventListener('click', ok);
+      inp.addEventListener('keydown', function(e){ if(e.key==='Enter') ok(); });
+      scrim.addEventListener('click', function(){ close(null); });
+    });
+  }
+  function confirmModal(opts){
+    return new Promise(function(resolve){
+      var scrim=document.createElement('div'); scrim.className='scrim';
+      var modal=document.createElement('div'); modal.className='modal surface';
+      modal.innerHTML='<div class="modal__title">'+opts.title+'</div>'+
+        (opts.message?'<div class="modal__sub">'+opts.message+'</div>':'')+
+        '<div class="modal__actions"><button class="btn-ghost-sm" data-role="cancel">取消</button><button class="'+(opts.danger?'btn-danger-sm':'btn-primary-sm')+'" data-role="ok">'+(opts.confirmText||'确认')+'</button></div>';
+      var app=document.querySelector('.app');
+      app.appendChild(scrim); app.appendChild(modal);
+      requestAnimationFrame(function(){ scrim.classList.add('is-open'); modal.classList.add('is-open'); });
+      function close(v){ scrim.classList.remove('is-open'); modal.classList.remove('is-open'); setTimeout(function(){ modal.remove(); scrim.remove(); },180); resolve(v); }
+      modal.querySelector('[data-role="cancel"]').addEventListener('click', function(){ close(false); });
+      modal.querySelector('[data-role="ok"]').addEventListener('click', function(){ close(true); });
+      scrim.addEventListener('click', function(){ close(false); });
+    });
+  }
+
+  // v2.toast 会话提示：其它页面跳转前写入的提示，进来后展示一次。
+  var pending=null; try{ pending=sessionStorage.getItem('v2.toast'); sessionStorage.removeItem('v2.toast'); }catch(e){}
+  if(pending) setTimeout(function(){ toastMsg(pending); },350);
+
+  // 数据来自真实后端：等 V2.ready（assets/app.js 拉取 /api/action-library 等）后读取渲染。
+  V2.ready.then(function(){
+    library=JSON.parse(JSON.stringify(V2.library()));
+    render();
+  }).catch(function(err){
+    if(window.console) console.error('[action-library] 动作库加载失败:', err);
+  });
+})();
+</script>
+</body>
+</html>

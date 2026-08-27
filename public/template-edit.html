@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#18191b" />
+<script>/* EFGH 换肤启动：localStorage v2.skin → html[data-skin]，防首帧闪烁 */
+(function(){var m={heat:'#f7f7f5',fire:'#121214',fresh:'#f3f8f6',efficient:'#f4f6f9'};var s=null;try{s=localStorage.getItem('v2.skin');}catch(e){}
+if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute('content',m[s]);}})();</script>
+
+<title>模板编辑 · 训练（竞训深色 · 皮肤A）</title>
+<style>
+:root {
+  --bg:#18191b; --surface:#232527; --raised:#2c2e31;
+  --fg:#ececec; --muted:#9da1a5; --faint:#767a7e;
+  --border:#35383b; --border-bright:#4a4d51;
+  --accent:#a2d43f; --accent-strong:#86b52e; --on-accent:#1f2517;
+  --ok:#4db06f; --danger:#ea4a4a; --warn:#d9a23f;
+  --cat-res:#d99b3e; --cat-cardio:#3cb8cf;
+  --ok-tint: color-mix(in oklch, var(--ok) 12%, transparent);
+  --acc-tint: color-mix(in oklch, var(--accent) 14%, transparent);
+  --danger-tint: color-mix(in oklch, var(--danger) 14%, transparent);
+  --shadow-float: 0 18px 44px rgba(0,0,0,.5);
+  --font-display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
+  --font-body: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  --font-mono: "SF Mono",Menlo,ui-monospace,monospace;
+  --safe-top: env(safe-area-inset-top,0px);
+  --safe-bottom: env(safe-area-inset-bottom,0px);
+}
+:root { --body-bg:#0c0d0f; --app-ring:0 0 0 1px rgba(255,255,255,.04); --scrim-bg:rgba(5,6,8,.62); --seg-shadow:0 1px 4px rgba(0,0,0,.35); --ok-text:#07130b; --swatch-ring:0 0 0 1px rgba(255,255,255,.14); }
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;height:100%;}
+body{margin:0;height:100%;background:var(--body-bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-touch-callout:none;}
+input{font:inherit;color:var(--fg);}
+a{color:inherit;text-decoration:none;}
+h1,h2,h3,p{margin:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.stage{min-height:100%;display:flex;justify-content:center;}
+.app{position:relative;width:100%;max-width:430px;height:100dvh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--app-ring);}
+
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(8px + var(--safe-top)) 12px 10px;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
+.topbar__title{font-size:17px;font-weight:700;text-align:center;flex:1;}
+.back-chip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);font-size:15px;text-decoration:none;}
+
+.back-chip svg{width:16px;height:16px;}
+
+.content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:18px 20px calc(24px + var(--safe-bottom));}
+.content::-webkit-scrollbar{width:0;}
+
+/* ── 表单 ── */
+.field-label{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.12em;margin:18px 2px 10px;}
+.field-label:first-of-type{margin-top:4px;}
+.field-label .hint{letter-spacing:0;font-weight:400;color:var(--faint);margin-left:8px;}
+.text-input{width:100%;min-height:50px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0 14px;font-size:16px;font-weight:600;transition:border-color .15s ease;}
+.text-input:focus{outline:none;border-color:var(--accent);}
+.segmented{display:flex;background:var(--raised);border:1px solid var(--border);border-radius:12px;padding:4px;}
+.segmented button{flex:1;min-height:44px;border-radius:9px;color:var(--muted);font-size:14px;font-weight:600;transition:background .15s ease,color .15s ease;}
+.segmented button.is-active{background:var(--bg);color:var(--fg);box-shadow:var(--seg-shadow);}
+.type-label{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);}
+.tag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;padding:6px 8px;border-radius:8px;line-height:1;}
+.tag--res{background:color-mix(in oklch,var(--cat-res) 16%,transparent);color:var(--cat-res);}
+.tag--cardio{background:color-mix(in oklch,var(--cat-cardio) 16%,transparent);color:var(--cat-cardio);}
+.type-label .hint{margin-left:4px;font-family:var(--font-body);font-size:13px;color:var(--faint);}
+.pick-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.pick-chip{min-height:40px;padding:0 16px;border-radius:12px;background:var(--raised);border:1px solid var(--border-bright);color:var(--fg);font-size:14px;font-weight:600;transition:all .15s ease;}
+.pick-chip:hover{border-color:var(--accent);}
+.pick-chip.is-on{background:var(--acc-tint);border-color:var(--accent);color:var(--accent);}
+.part-group{display:flex;flex-wrap:wrap;gap:6px;}
+
+/* ── 动作编辑列表 ── */
+.ex-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 14px 12px;margin-bottom:10px;}
+.ex-card__head{display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.ex-card__name{flex:1;font-size:15px;font-weight:700;}
+.ex-card__del{flex:none;width:34px;height:34px;display:grid;place-items:center;color:var(--muted);border-radius:9px;}
+.ex-card__del:hover{color:var(--danger);}
+.ex-card__del svg{width:15px;height:15px;}
+.set-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border);}
+.set-row:first-of-type{border-top:0;}
+.set-row__idx{flex:none;width:40px;font-family:var(--font-mono);font-size:13px;color:var(--muted);}
+.set-row__del{flex:none;width:40px;height:40px;display:grid;place-items:center;color:var(--faint);border-radius:10px;}
+.set-row__del:hover{color:var(--danger);}
+.bw-toggle{flex:none;min-height:38px;padding:0 11px;border-radius:10px;border:1px solid var(--border-bright);color:var(--fg);font-size:13px;font-weight:600;transition:all .15s ease;}
+.bw-toggle.is-active{background:var(--acc-tint);border-color:var(--accent);color:var(--accent);}
+.set-input{flex:1;min-width:0;height:40px;border:0;border-bottom:1px solid var(--border-bright);background:transparent;font-family:var(--font-mono);font-size:17px;font-weight:600;text-align:center;transition:border-color .15s ease;}
+.set-input:focus{outline:none;border-bottom-color:var(--accent);}
+.set-input::placeholder{color:var(--faint);font-weight:400;}
+.add-set{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;border:1px dashed var(--border-bright);border-radius:10px;color:var(--muted);font-size:14px;font-weight:600;}
+.add-set:hover{border-color:var(--accent);color:var(--accent);}
+
+.del-template{margin-top:20px;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:46px;color:var(--danger);font-size:14px;font-weight:600;border-radius:12px;}
+.del-template:hover{background:var(--danger-tint);}
+
+.bottom-bar{flex:none;display:flex;gap:10px;padding:10px 20px calc(10px + var(--safe-bottom));border-top:1px solid var(--border);background:var(--bg);}
+.btn-primary{flex:1;min-height:52px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:16px;font-weight:800;transition:background .15s ease,transform .06s ease;}
+.btn-primary:hover{background:var(--accent-strong);}
+.btn-primary:active{transform:translateY(1px);}
+.btn-ghost-big{flex:1;min-height:52px;border-radius:14px;border:1px solid var(--border-bright);color:var(--fg);font-size:15px;font-weight:700;}
+.btn-ghost-big:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── 弹层 ── */
+.scrim{position:absolute;inset:0;z-index:40;background:var(--scrim-bg);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.scrim.is-open{opacity:1;pointer-events:auto;}
+.surface{background:var(--surface);border:1px solid var(--border);border-radius:16px;}
+.modal{position:absolute;left:12px;right:12px;top:50%;transform:translateY(calc(-50% + 12px)) scale(.98);z-index:41;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow-float);
+  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;}
+.modal.is-open{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1);}
+.modal__title{text-align:center;font-size:17px;font-weight:700;}
+.modal__sub{text-align:center;font-size:13px;color:var(--muted);margin-top:7px;line-height:1.5;}
+.modal__actions{display:flex;gap:10px;margin-top:20px;}
+.btn-primary-sm{flex:1;min-height:48px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:800;}
+.btn-primary-sm:hover{background:var(--accent-strong);}
+.btn-ghost-sm{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--border-bright);color:var(--fg);font-size:15px;font-weight:600;}
+.btn-ghost-sm:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger-sm{flex:1;min-height:48px;border-radius:12px;background:var(--danger);color:#fff;font-size:15px;font-weight:800;}
+.btn-danger-sm:hover{background:color-mix(in oklch,var(--danger) 88%,black);}
+
+/* ── toast ── */
+.toast{position:absolute;left:14px;right:14px;top:calc(var(--safe-top) + 10px);z-index:60;background:var(--raised);border:1px solid var(--border-bright);
+  border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;color:var(--fg);text-align:center;
+  opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
+.toast.is-in{opacity:1;transform:translateY(0);}
+.toast.is-err{border-color:var(--danger);color:var(--danger);}
+
+/* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
+html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--cat-res:#a8550b;--cat-cardio:#0e7490;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,27,.14);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,27,.22);}
+html[data-skin="heat"] .ring__num,html[data-skin="heat"] .stat-tile__num,html[data-skin="heat"] .set-view-row__weight,html[data-skin="heat"] .set-view-row__reps,html[data-skin="heat"] .cardio-view__num,html[data-skin="heat"] .stepper__value,html[data-skin="heat"] .cal-cell__num{font-weight:900;}
+html[data-skin="heat"] .ring__num{letter-spacing:-.03em;}
+html[data-skin="fire"]{--bg:#121214;--surface:#1c1e22;--raised:#26282d;--fg:#f4f3f1;--muted:#a9a3a0;--faint:#8b8782;--border:#3c3f45;--border-bright:#55585e;--accent:#ff7024;--accent-strong:#dd4a0d;--on-accent:#1c0f06;--ok:#3ecb72;--danger:#ff5040;--warn:#f8b04a;--cat-res:#f9992e;--cat-cardio:#a9dc4a;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(10,6,2,.62);--body-bg:#0a0b0e;--app-ring:0 0 0 1px rgba(255,255,255,.06);--scrim-bg:rgba(10,6,2,.68);--seg-shadow:0 1px 4px rgba(0,0,0,.35);--ok-text:#07130b;--swatch-ring:0 0 0 1px rgba(255,255,255,.18);}
+html[data-skin="fresh"]{--bg:#f3f8f6;--surface:#ffffff;--raised:#eef3f0;--fg:#1c2321;--muted:#59625f;--faint:#6f7874;--border:#e4e9e6;--border-bright:#cfd7d3;--accent:#26794a;--accent-strong:#1f633b;--on-accent:#ffffff;--ok:#15803c;--danger:#cf4436;--warn:#97660f;--cat-res:#8a6510;--cat-cardio:#1f6f78;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(31,42,38,.12);--body-bg:#dfe8e3;--app-ring:0 0 0 1px rgba(31,42,38,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(31,42,38,.09);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(31,42,38,.16);}
+html[data-skin="efficient"]{--bg:#f4f6f9;--surface:#ffffff;--raised:#e9edf3;--fg:#1c2028;--muted:#5a616b;--faint:#717a85;--border:#e3e7ee;--border-bright:#c2cad5;--accent:#3a62d6;--accent-strong:#234aa0;--on-accent:#ffffff;--ok:#2353b8;--danger:#cf4436;--warn:#99630f;--cat-res:#8a5f12;--cat-cardio:#3561ad;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(23,30,40,.12);--body-bg:#e9edf4;--app-ring:0 0 0 1px rgba(23,30,40,.05);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,40,.10);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,40,.16);}
+html[data-skin="efficient"] .action-row,html[data-skin="efficient"] .set-row,html[data-skin="efficient"] .session-ex,html[data-skin="efficient"] .schedule-row,html[data-skin="efficient"] .set-view-row,html[data-skin="efficient"] .setting-row,html[data-skin="efficient"] .plan-row{border-color:color-mix(in oklch,var(--border) 55%,var(--bg) 45%);}
+html[data-skin="efficient"] .topbar,html[data-skin="efficient"] .dock,html[data-skin="efficient"] .bottom-bar,html[data-skin="efficient"] .tabbar,html[data-skin="efficient"] .cal-card,html[data-skin="efficient"] .day-card,html[data-skin="efficient"] .set-card,html[data-skin="efficient"] .note-card,html[data-skin="efficient"] .modal,html[data-skin="efficient"] .sheet,html[data-skin="efficient"] .surface,html[data-skin="efficient"] .card{border-color:color-mix(in oklch,var(--border) 70%,var(--bg) 30%);}
+html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__num,html[data-skin="efficient"] .set-view-row__weight,html[data-skin="efficient"] .set-view-row__reps,html[data-skin="efficient"] .cardio-view__num,html[data-skin="efficient"] .stepper__value,html[data-skin="efficient"] .cal-cell__num{letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+
+</style>
+</head>
+<body data-skin="athletic">
+<div class="stage">
+  <div class="app" data-od-id="template-edit-page">
+    <header class="topbar" data-od-id="template-edit-topbar">
+      <a class="back-chip" href="训练模板.html" data-od-id="tpl-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        返回
+      </a>
+      <div class="topbar__title" id="pageTitle">新增模板</div>
+      <div style="width:76px;"></div>
+    </header>
+
+    <main class="content">
+      <div id="typeSegWrap">
+        <div class="segmented" id="typeSeg" data-od-id="type-seg">
+          <button class="is-active" type="button" data-type="cardio">有氧</button>
+          <button type="button" data-type="resistance">抗阻</button>
+        </div>
+      </div>
+      <div id="typeLabelWrap" style="display:none;"></div>
+
+      <div class="field-label">模板名称</div>
+      <input class="text-input" id="nameInput" type="text" placeholder="例如：胸日 / 跑步机慢跑" />
+
+      <div id="cardioForm">
+        <div class="field-label">有氧动作</div>
+        <div class="pick-chips" id="cardioChips"></div>
+        <div class="field-label">时长（分钟）</div>
+        <div class="stepper">
+          <button class="stepper__btn" id="durMinus" type="button" aria-label="减少时长">－</button>
+          <span class="stepper__value" id="durValue">30</span>
+          <button class="stepper__btn" id="durPlus" type="button" aria-label="增加时长">＋</button>
+        </div>
+        <div class="field-label">速度（km/h）<span class="hint">选填</span></div>
+        <input class="text-input" id="speedInput" type="text" inputmode="decimal" placeholder="例如 6" style="max-width:180px;" />
+      </div>
+
+      <div id="resForm" style="display:none;">
+        <div class="field-label">部位（可多选）</div>
+        <div class="pick-chips" id="partChips"></div>
+        <div id="actionsSection"></div>
+        <div class="field-label" id="exLabel" style="display:none;">已添加动作<span class="hint">组数 / 重量 / 次数选填 · 单位 <span id="exUnitTag">kg</span></span></div>
+        <div id="exList"></div>
+      </div>
+
+      <button class="del-template" id="delTemplateBtn" type="button" style="display:none;" data-od-id="del-template-btn">删除该模板</button>
+    </main>
+
+    <footer class="bottom-bar" data-od-id="tpl-bottom-bar">
+      <button class="btn-ghost-big" id="cancelBtn" type="button" style="display:none;" data-od-id="cancel-changes-btn">取消更改</button>
+      <button class="btn-primary" id="saveBtn" type="button" data-od-id="save-template-btn">保存模板</button>
+    </footer>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<script src="/config.js"></script>
+<script src="assets/app.js"></script>
+<script src="v2-bridge.js"></script>
+<script>
+(function(){
+  'use strict';
+  var CARDIO_ACTIONS=['跑步机慢跑','室外慢跑','椭圆机','爬坡快走'];
+  /* 重量单位：数据规范存 kg，显示按 v2.unit 换算 */
+  var LB=0.45359237;
+  var UNIT=(function(){ try{ return localStorage.getItem('v2.unit')||'kg'; }catch(e){ return 'kg'; } })();
+  var WT_UNIT = UNIT==='lb' ? 'lb' : 'kg';
+  function wtDisplay(kg){ if(kg==null||kg==='') return ''; return UNIT==='lb' ? String(Math.round(kg/LB*10)/10) : String(kg); }
+  function wtStore(v){ return UNIT==='lb' ? Math.round(v*LB*2)/2 : v; }
+  function normalize(raw){ return String(raw).replace(/[。．｡]/g,'.').replace(/[０-９]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0xFEE0); }); }
+
+  /* 数据来自真实后端（V2 桥接 / assets/app.js）：模板与动作库，V2.ready 后填充 */
+  var library=[];
+  var existing=null;
+  var state=null;
+
+  var params=new URLSearchParams(window.location.search);
+  var editId=params.get('id');
+
+  var toast=document.getElementById('toast'), toastTimer;
+  function toastMsg(msg,isErr){
+    toast.textContent=msg;
+    toast.classList.toggle('is-err',!!isErr);
+    toast.classList.add('is-in');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
+  }
+  function goContent(msg){ try{ sessionStorage.setItem('v2.toast', msg); }catch(e){} location.href='训练模板.html'; }
+
+  /* ── 类型 ── */
+  function renderType(){
+    document.querySelectorAll('#typeSeg button').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-type')===state.type); });
+    document.getElementById('cardioForm').style.display = state.type==='cardio'?'block':'none';
+    document.getElementById('resForm').style.display = state.type==='resistance'?'block':'none';
+    document.getElementById('cancelBtn').style.display = (existing || state.type==='resistance') ? 'block':'none';
+    inputSync();
+  }
+
+  /* ── 基础输入 ── */
+  var nameInput=document.getElementById('nameInput');
+  nameInput.addEventListener('input', function(){ if(!state) return; state.name=this.value; });
+
+  /* ── 有氧表单 ── */
+  function renderCardioChips(){
+    document.getElementById('cardioChips').innerHTML=CARDIO_ACTIONS.map(function(a){
+      return '<button class="pick-chip'+(state.action===a?' is-on':'')+'" type="button" data-name="'+a+'">'+a+'</button>';
+    }).join('');
+    document.getElementById('cardioChips').querySelectorAll('.pick-chip').forEach(function(c){
+      c.addEventListener('click', function(){ state.action=c.getAttribute('data-name'); renderCardioChips(); });
+    });
+  }
+  document.getElementById('durMinus').addEventListener('click', function(){ if(!state) return; state.duration=Math.max(5,(state.duration||30)-5); inputSync(); });
+  document.getElementById('durPlus').addEventListener('click', function(){ if(!state) return; state.duration=Math.min(180,(state.duration||30)+5); inputSync(); });
+  var speedInput=document.getElementById('speedInput');
+  speedInput.addEventListener('input', function(){ if(!state) return; state.speed = this.value===''? null : Number(this.value); });
+
+  /* ── 抗阻表单 ── */
+  function renderPartChips(){
+    document.getElementById('partChips').innerHTML=library.map(function(p){
+      return '<button class="pick-chip'+(state.parts.indexOf(p.name)!==-1?' is-on':'')+'" type="button" data-part="'+p.name+'">'+p.name+'</button>';
+    }).join('');
+    document.getElementById('partChips').querySelectorAll('.pick-chip').forEach(function(c){
+      c.addEventListener('click', function(){
+        var n=c.getAttribute('data-part');
+        var ix=state.parts.indexOf(n);
+        if(ix===-1){ state.parts.push(n); }
+        else { state.parts.splice(ix,1); state.exercises=state.exercises.filter(function(e){ return e.part!==n; }); }
+        renderPartChips(); renderActionsSection(); renderExercises();
+      });
+    });
+  }
+  function renderActionsSection(){
+    var box=document.getElementById('actionsSection');
+    box.innerHTML=state.parts.map(function(part){
+      var p=library.filter(function(x){return x.name===part;})[0]||{actions:[]};
+      var chips=p.actions.map(function(a){
+        var active=state.exercises.some(function(e){ return e.part===part && e.name===a; });
+        return '<button class="pick-chip'+(active?' is-on':'')+'" type="button" data-part="'+part+'" data-name="'+a+'">'+a+'</button>';
+      }).join('');
+      return '<div class="field-label">'+part+' 动作</div><div class="part-group">'+chips+'</div>';
+    }).join('');
+    box.querySelectorAll('.pick-chip').forEach(function(c){
+      c.addEventListener('click', function(){
+        var part=c.getAttribute('data-part'), name=c.getAttribute('data-name');
+        var ix=state.exercises.findIndex(function(e){ return e.part===part && e.name===name; });
+        if(ix===-1){ state.exercises.push({name:name, part:part, sets:[]}); }
+        else { state.exercises.splice(ix,1); }
+        renderActionsSection(); renderExercises();
+      });
+    });
+  }
+  function renderExercises(){
+    var label=document.getElementById('exLabel');
+    var box=document.getElementById('exList');
+    if(!state.exercises.length){ label.style.display='none'; box.innerHTML=''; return; }
+    label.style.display='block';
+    box.innerHTML=state.exercises.map(function(ex,ei){
+      var setsHtml = ex.sets.map(function(s,si){ return setRowHTML(ei,si,s); }).join('') +
+        '<button class="add-set" type="button" data-role="add-set" data-ex="'+ei+'">＋ 添加组</button>';
+      return '<div class="ex-card" data-od-id="ex-card-'+ei+'">'+
+        '<div class="ex-card__head"><span class="tag tag--res">'+ex.part+'</span><span class="ex-card__name">'+ex.name+'</span>'+
+        '<button class="ex-card__del" data-role="del-ex" data-ex="'+ei+'" aria-label="移除动作"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13"/></svg></button>'+
+        '</div>'+setsHtml+'</div>';
+    }).join('');
+    box.querySelectorAll('[data-role="del-ex"]').forEach(function(b){
+      b.addEventListener('click', function(){ state.exercises.splice(Number(b.getAttribute('data-ex')),1); renderActionsSection(); renderExercises(); });
+    });
+    box.querySelectorAll('[data-role="add-set"]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var ex=state.exercises[Number(b.getAttribute('data-ex'))];
+        var prev=ex.sets[ex.sets.length-1];
+        ex.sets.push(prev ? {weight_kg:prev.weight_kg,is_bodyweight:!!prev.is_bodyweight,reps:prev.reps} : {weight_kg:null,is_bodyweight:false,reps:null});
+        renderExercises();
+      });
+    });
+    box.querySelectorAll('.set-row').forEach(function(row){
+      var ei=Number(row.getAttribute('data-ex')), si=Number(row.getAttribute('data-set'));
+      row.querySelector('[data-role="del-set"]').addEventListener('click', function(){ state.exercises[ei].sets.splice(si,1); renderExercises(); });
+      row.querySelector('[data-role="bw"]').addEventListener('click', function(){
+        var s=state.exercises[ei].sets[si];
+        s.is_bodyweight=!s.is_bodyweight;
+        if(s.is_bodyweight) s.weight_kg=null;
+        row.querySelector('[data-role="weight"]').disabled = s.is_bodyweight;
+        row.querySelector('[data-role="weight"]').value = s.is_bodyweight?'':(s.weight_kg!=null?String(s.weight_kg):'');
+        row.querySelector('[data-role="bw"]').classList.toggle('is-active',s.is_bodyweight);
+      });
+      row.querySelector('[data-role="weight"]').addEventListener('input', function(){
+        var v=normalize(this.value); if(v!==this.value) this.value=v;
+        var s=state.exercises[ei].sets[si];
+        s.weight_kg=v===''?null:wtStore(Number(v));
+        if(v!=='') s.is_bodyweight=false;
+      });
+      row.querySelector('[data-role="reps"]').addEventListener('input', function(){
+        var v=normalize(this.value); if(v!==this.value) this.value=v;
+        state.exercises[ei].sets[si].reps=v===''?null:Number(v);
+      });
+    });
+  }
+  function setRowHTML(ei,si,s){
+    var bw=!!s.is_bodyweight;
+    return '<div class="set-row" data-ex="'+ei+'" data-set="'+si+'">'+
+      '<span class="set-row__idx">第'+(si+1)+'组</span>'+
+      '<button class="set-row__del" type="button" data-role="del-set" aria-label="删除该组"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+
+      '<button class="bw-toggle'+(bw?' is-active':'')+'" type="button" data-role="bw">自重</button>'+
+      '<input class="set-input" type="text" inputmode="decimal" data-role="weight" placeholder="重量'+WT_UNIT+'" value="'+wtDisplay(s.weight_kg)+'"'+(bw?' disabled':'')+'>'+
+      '<input class="set-input" type="text" inputmode="numeric" data-role="reps" placeholder="次数" value="'+(s.reps!=null?String(s.reps):'')+'">'+
+    '</div>';
+  }
+
+  function inputSync(){
+    document.getElementById('durValue').textContent = state.duration!=null?state.duration:(state.type==='cardio'?30:'30');
+  }
+
+  /* ── 保存（写后端） ── */
+  document.getElementById('saveBtn').addEventListener('click', function(){
+    if(!state){ toastMsg('数据加载中，请稍候'); return; }
+    if(state.type==='resistance' && state.parts.length===0){
+      confirmModal({title:'请先选择至少一个训练部位',single:true,confirmText:'好的'}).then(function(){});
+      return;
+    }
+    var name=(state.name||'').trim();
+    if(!name){
+      name = state.type==='cardio' ? (state.action+' '+(state.duration||30)+'分钟') : ((state.parts[0]||'训练')+'日');
+    }
+    var toSave;
+    if(state.type==='cardio'){
+      toSave={id:state.id,type:'cardio',name:name,action:state.action,speed:state.speed,duration:state.duration};
+    } else {
+      // 组是模板计划值：只带 weight_kg/is_bodyweight/reps，不带 done 等执行态字段
+      var exercises=state.exercises.map(function(e){
+        return {name:e.name, part:e.part, sets:(e.sets||[]).map(function(s){
+          return {weight_kg:s.weight_kg, is_bodyweight:!!s.is_bodyweight, reps:s.reps};
+        })};
+      });
+      toSave={id:state.id,type:'resistance',name:name,parts:state.parts,exercises:exercises};
+    }
+    var saveBtn=document.getElementById('saveBtn');
+    saveBtn.disabled=true;
+    V2.saveTemplate(toSave).then(function(){
+      goContent('已保存模板「'+name+'」');
+    }).catch(function(err){
+      saveBtn.disabled=false;
+      toastMsg('保存失败：'+(err&&err.message||err), true);
+    });
+  });
+
+  document.getElementById('cancelBtn').addEventListener('click', function(){ location.href='训练模板.html'; });
+
+  document.getElementById('delTemplateBtn').addEventListener('click', function(){
+    if(!state) return;
+    confirmModal({title:'删除该训练模板？',message:'已完成的训练记录不会受影响。',confirmText:'删除',danger:true}).then(function(ok){
+      if(!ok) return;
+      V2.deleteTemplate(state.id).then(function(){
+        goContent('已删除模板');
+      }).catch(function(err){
+        toastMsg('删除失败：'+(err&&err.message||err), true);
+      });
+    });
+  });
+
+  /* ── 弹层 confirm ── */
+  function confirmModal(opts){
+    return new Promise(function(resolve){
+      var modal=document.createElement('div');
+      modal.className='modal surface';
+      modal.innerHTML='<div class="modal__title">'+opts.title+'</div>'+
+        (opts.message?'<div class="modal__sub">'+opts.message+'</div>':'')+
+        '<div class="modal__actions">'+
+        (opts.single?'':'<button class="btn-ghost-sm" data-role="cancel">取消</button>')+
+        '<button class="'+(opts.danger?'btn-danger-sm':'btn-primary-sm')+'" data-role="ok">'+(opts.confirmText||'确认')+'</button></div>';
+      var scrim=document.createElement('div'); scrim.className='scrim';
+      document.querySelector('.app').appendChild(scrim);
+      document.querySelector('.app').appendChild(modal);
+      requestAnimationFrame(function(){ scrim.classList.add('is-open'); modal.classList.add('is-open'); });
+      function close(v){
+        scrim.classList.remove('is-open'); modal.classList.remove('is-open');
+        setTimeout(function(){ modal.remove(); scrim.remove(); },180);
+        resolve(v);
+      }
+      var cancel=modal.querySelector('[data-role="cancel"]');
+      if(cancel){ cancel.addEventListener('click', function(){ close(false); }); }
+      modal.querySelector('[data-role="ok"]').addEventListener('click', function(){ close(true); });
+      scrim.addEventListener('click', function(){ close(false); });
+    });
+  }
+
+  /* ── 初始渲染：等 V2.ready（assets/app.js 拉取 /api/templates、/api/action-library）后再初始化 ── */
+  (window.V2 && V2.ready ? V2.ready : Promise.reject(new Error('V2 桥接未加载'))).then(function(){
+    var templates=V2.templates();
+    library=V2.library();
+    existing = editId ? templates.filter(function(t){return t.id===editId;})[0] || null : null;
+    state = existing ? JSON.parse(JSON.stringify(existing)) : {
+      id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      type:'resistance', name:'', action:CARDIO_ACTIONS[0], speed:null, duration:30,
+      parts:[], exercises:[]
+    };
+    if(!state.parts) state.parts=[];
+    if(!state.exercises) state.exercises=[];
+
+    if(existing){
+      document.getElementById('typeSegWrap').style.display='none';
+      document.getElementById('typeLabelWrap').style.display='flex';
+      document.getElementById('typeLabelWrap').innerHTML='<div class="type-label"><span class="tag '+(state.type==='cardio'?'tag--cardio':'tag--res')+'">'+(state.type==='cardio'?'有氧':'抗阻')+'</span>模板类型创建后不可更改</div>';
+      document.getElementById('pageTitle').textContent='编辑模板';
+      document.getElementById('delTemplateBtn').style.display='flex';
+      document.getElementById('cancelBtn').style.display='block';
+    } else {
+      document.querySelectorAll('#typeSeg button').forEach(function(b){
+        b.addEventListener('click', function(){
+          state.type=b.getAttribute('data-type');
+          renderType();
+        });
+      });
+    }
+
+    nameInput.value=state.name||'';
+    document.getElementById('durValue').textContent='30';
+    speedInput.value = state.speed!=null ? state.speed : '';
+
+    renderCardioChips();
+    inputSync();
+    if(document.getElementById('exUnitTag')) document.getElementById('exUnitTag').textContent=WT_UNIT;
+    renderPartChips();
+    renderActionsSection();
+    renderExercises();
+    renderType();
+  }).catch(function(err){
+    toastMsg('数据加载失败：'+(err&&err.message||'后端未就绪'), true);
+  });
+})();
+</script>
+</body>
+</html>
