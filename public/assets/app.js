@@ -102,37 +102,6 @@
     return '未填写';
   }
 
-  // Google 日历只在标题里展示训练内容。相同重量/次数的组自动合并成
-  // 「60kg×10次×3组」，避免一场训练的标题被重复组数据无谓拉长。
-  function calendarSetsText(sets, fallbackCount) {
-    var groups = [];
-    (sets || []).forEach(function (s) {
-      var weight = s.is_bodyweight
-        ? '自重'
-        : (s.weight_kg != null && s.weight_kg !== '' ? s.weight_kg + 'kg' : '');
-      var reps = s.reps != null && s.reps !== '' ? s.reps + '次' : '';
-      var spec = [weight, reps].filter(Boolean).join('×');
-      var found = groups.find(function (g) { return g.spec === spec; });
-      if (found) found.count += 1;
-      else groups.push({ spec: spec, count: 1 });
-    });
-    if (!groups.length) return (fallbackCount || 0) + '组';
-    return groups.map(function (g) {
-      return g.spec ? g.spec + '×' + g.count + '组' : g.count + '组';
-    }).join('/');
-  }
-
-  function calendarActionText(action) {
-    action = action || {};
-    if (action.type === 'cardio') {
-      return ['有氧·' + (action.name || action.action || '有氧'),
-        action.speed != null && action.speed !== '' ? action.speed + 'km/h' : '',
-        (action.duration || 30) + '分钟'].filter(Boolean).join(' ');
-    }
-    return (action.part || '抗阻') + '·' + (action.name || '训练') + ' ' +
-      calendarSetsText(action.sets, action.plan_sets);
-  }
-
   // 训练时长选择器（执行训练页，日期右边那个，默认1小时/每次±30分钟）的文案格式化。
   function formatSessionDuration(minutes) {
     var h = minutes / 60;
@@ -251,7 +220,6 @@
       templateName: (tpl && tpl.name) || (rec && rec.templateName) || '训练',
       resistance: { exercises: exercises },
       durationMinutes: (rec && rec.durationMinutes) || 60,
-      syncCalendar: rec ? rec.syncCalendar : true,
       completed: allDone,
       createdAt: rec ? rec.createdAt : Date.now(),
     });
@@ -278,8 +246,6 @@
       actions: actions,
       completed: opts.completed !== undefined ? !!opts.completed : (existing ? !!existing.completed : false),
       mood: opts.mood !== undefined ? opts.mood : (existing ? existing.mood : null),
-      syncCalendar: opts.syncCalendar !== undefined ? !!opts.syncCalendar : (existing ? !!existing.syncCalendar : true),
-      calendar: opts.calendar !== undefined ? opts.calendar : (existing ? existing.calendar : null),
       createdAt: existing ? existing.createdAt : Date.now(),
     };
     return saveRecord(rec);
@@ -308,15 +274,11 @@
     actions.splice(idx, 1);
     return saveDaySession(dateStr, actions, { completed: !!existing.completed });
   }
-  // 「完成训练」：整场记完成 + 本次感受（mood 三档 0/1/2），日历结果存 calendar。
-  function completeDaySession(dateStr, mood, syncCalendar, calendar) {
+  // 「完成训练」：整场记完成 + 本次感受（mood 三档 0/1/2）。
+  function completeDaySession(dateStr, mood) {
     var existing = getDaySession(dateStr);
     var actions = existing ? JSON.parse(JSON.stringify(existing.actions)) : [];
-    return saveDaySession(dateStr, actions, {
-      completed: true, mood: mood,
-      syncCalendar: syncCalendar,
-      calendar: calendar !== undefined ? calendar : (existing ? existing.calendar : null),
-    });
+    return saveDaySession(dateStr, actions, { completed: true, mood: mood });
   }
   function sessionCompletedFor(dateStr) {
     var s = getDaySession(dateStr);
@@ -335,19 +297,10 @@
       templateId: tid, templateName: rec.templateName,
       resistance: { exercises: exercises },
       durationMinutes: rec.durationMinutes,
-      syncCalendar: rec.syncCalendar,
       completed: rec.completed,
       createdAt: rec.createdAt,
     });
   }
-  // 「同步到日历」→ 训练服务代为调用既有日历服务（pim-service），返回 {synced, event?}。
-  function syncCalendarEvent(event) {
-    return apiSend('POST', '/api/calendar-events', event).then(function (res) {
-      if (!res || !res.ok) throw new Error((res && res.error) || 'calendar sync failed');
-      return res;
-    });
-  }
-
   // ── 「同步到计划」：把本次组数据写回训练模板里的对应动作 ──
   // 单个动作：执行页「添加到计划中」按钮 + 「完成本动作」浮层的同步到计划。
   // 没有可同步数据（无模板/0 组）时 resolve(null)，调用方自行处理。
@@ -1114,17 +1067,16 @@
     todayStr: todayStr, isSameDate: isSameDate, WEEKDAYS_SHORT: WEEKDAYS_SHORT, WEEKDAY_KEYS: WEEKDAY_KEYS, WEEKDAY_LABELS: WEEKDAY_LABELS,
     weekdayIndexMonFirst: weekdayIndexMonFirst, weekdayKeyForDate: weekdayKeyForDate, startOfWeek: startOfWeek, formatMD: formatMD, formatMDWeekday: formatMDWeekday,
     escapeHtml: escapeHtml, setWeightLabel: setWeightLabel, formatSessionDuration: formatSessionDuration,
-    calendarSetsText: calendarSetsText, calendarActionText: calendarActionText,
     setNavDate: setNavDate, getNavDate: getNavDate,
     getTemplates: getTemplates, saveTemplate: saveTemplate, deleteTemplate: deleteTemplate, getTemplate: getTemplate,
     getRecords: getRecords, getRecordsByDate: getRecordsByDate, saveRecord: saveRecord, deleteRecord: deleteRecord, getRecord: getRecord,
     getWeeklyPlan: getWeeklyPlan, saveWeeklyPlan: saveWeeklyPlan, getPlannedTemplatesForDate: getPlannedTemplatesForDate,
     sessionRecordFor: sessionRecordFor, saveSessionExercise: saveSessionExercise,
-    // 训练模块迭代：当天动作级会话 + 日历同步
+    // 训练模块迭代：当天动作级会话
     getDaySession: getDaySession, saveDaySession: saveDaySession, addActionsToDay: addActionsToDay,
     updateDayAction: updateDayAction, deleteDayAction: deleteDayAction, completeDaySession: completeDaySession,
     removeTemplateExercise: removeTemplateExercise,
-    sessionCompletedFor: sessionCompletedFor, syncCalendarEvent: syncCalendarEvent,
+    sessionCompletedFor: sessionCompletedFor,
     syncExerciseToTemplate: syncExerciseToTemplate, syncDayPlanToTemplates: syncDayPlanToTemplates,
     dayHasPlanSyncCandidates: dayHasPlanSyncCandidates,
     clearTrainingDrafts: clearTrainingDrafts, dropOutdatedDrafts: dropOutdatedDrafts,

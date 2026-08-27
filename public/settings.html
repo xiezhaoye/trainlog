@@ -18,6 +18,7 @@ if(s&&m[s]){document.documentElement.setAttribute('data-skin',s);var t=document.
   --ok:#4db06f; --danger:#ea4a4a; --warn:#d9a23f;
   --cat-res:#d99b3e; --cat-cardio:#3cb8cf;
   --acc-tint: color-mix(in oklch, var(--accent) 14%, transparent);
+  --danger-tint: color-mix(in oklch, var(--danger) 14%, transparent);
   --shadow-float: 0 18px 44px rgba(0,0,0,.5);
   --font-display: "Avenir Next Condensed","Avenir Next",-apple-system,"PingFang SC",system-ui,sans-serif;
   --font-body: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
@@ -63,6 +64,19 @@ h1,h2,p{margin:0;}
 .zone{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.12em;margin:30px 2px 14px;}
 .zone:first-of-type{margin-top:4px;}
 
+/* ── 当前登录账户 ── */
+.account-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;}
+.account-avatar{flex:none;width:42px;height:42px;border-radius:50%;background:var(--acc-tint);color:var(--accent);display:grid;place-items:center;}
+.account-avatar svg{width:21px;height:21px;}
+.account-body{flex:1;min-width:0;}
+.account-email{display:block;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.account-name{display:block;font-family:var(--font-mono);font-size:11px;color:var(--faint);letter-spacing:.06em;margin-top:3px;}
+.account-logout{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:10px;
+  border:1px solid color-mix(in oklch,var(--danger) 55%,var(--border-bright));color:var(--danger);font-size:13.5px;font-weight:600;
+  transition:background .15s ease,border-color .15s ease;}
+.account-logout:hover{background:var(--danger-tint);border-color:var(--danger);}
+.account-logout svg{width:15px;height:15px;}
+
 .pref-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;}
 .pref-info{flex:1;min-width:0;}
 .pref-name{font-size:15px;font-weight:700;}
@@ -94,6 +108,22 @@ h1,h2,p{margin:0;}
   opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
 .toast.is-in{opacity:1;transform:translateY(0);}
 
+/* ── 退出确认浮层（皮肤 token 化） ── */
+.ac-scrim{position:absolute;inset:0;z-index:70;background:var(--scrim-bg);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.ac-scrim.is-open{opacity:1;pointer-events:auto;}
+.ac-confirm{position:absolute;left:16px;right:16px;top:50%;transform:translateY(calc(-50% + 12px)) scale(.98);z-index:71;
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow-float);
+  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;}
+.ac-confirm.is-open{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1);}
+.ac-confirm__title{text-align:center;font-size:17px;font-weight:700;}
+.ac-confirm__sub{text-align:center;font-size:13px;color:var(--muted);margin-top:7px;line-height:1.5;}
+.ac-confirm__acts{display:flex;gap:10px;margin-top:20px;}
+.ac-btn{flex:1;min-height:48px;border-radius:12px;font-size:15px;font-weight:700;transition:background .15s ease,border-color .15s ease,color .15s ease;}
+.ac-btn--ghost{border:1px solid var(--border-bright);color:var(--fg);background:transparent;}
+.ac-btn--ghost:hover{border-color:var(--accent);color:var(--accent);}
+.ac-btn--danger{background:var(--danger);color:#fff;border:1px solid var(--danger);}
+.ac-btn--danger:hover{background:color-mix(in oklch,var(--danger) 88%,black);}
+
 /* ═══ EFGH 换肤：data-skin 在 <html> 上，覆盖 :root 全部 token ═══ */
 html[data-skin="heat"]{--bg:#f7f7f5;--surface:#ffffff;--raised:#eef0ec;--fg:#201f1c;--muted:#5f5b55;--faint:#7b7670;--border:#d9dcda;--border-bright:#bcc3c0;--accent:#cf4409;--accent-strong:#a83a06;--on-accent:#ffffff;--ok:#178745;--danger:#d31f1f;--warn:#a06a0a;--cat-res:#a8550b;--cat-cardio:#0e7490;--ok-tint:color-mix(in oklch,var(--ok) 12%,transparent);--acc-tint:color-mix(in oklch,var(--accent) 14%,transparent);--danger-tint:color-mix(in oklch,var(--danger) 14%,transparent);--shadow-float:0 18px 44px rgba(28,24,18,.18);--body-bg:#ece9e4;--app-ring:0 0 0 1px rgba(23,30,27,.08);--scrim-bg:rgba(20,26,24,.38);--seg-shadow:0 1px 4px rgba(23,30,27,.14);--ok-text:#ffffff;--swatch-ring:0 0 0 1px rgba(23,30,27,.22);}
 html[data-skin="heat"] .ring__num,html[data-skin="heat"] .stat-tile__num,html[data-skin="heat"] .set-view-row__weight,html[data-skin="heat"] .set-view-row__reps,html[data-skin="heat"] .cardio-view__num,html[data-skin="heat"] .stepper__value,html[data-skin="heat"] .cal-cell__num{font-weight:900;}
@@ -115,6 +145,20 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     </header>
 
     <main class="content">
+      <div class="account-card" data-od-id="account-card">
+        <span class="account-avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><path d="M4 20c1.4-2.4 4.2-4 8-4s6.6 1.6 8 4"/></svg>
+        </span>
+        <span class="account-body">
+          <span class="account-email" id="accountEmail">正在载入账号…</span>
+          <span class="account-name" id="accountName" style="display:none;"></span>
+        </span>
+        <button class="account-logout" id="logoutBtn" type="button" data-od-id="logout-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2M15 8l4 4-4 4M19 12H9"/></svg>
+          退出
+        </button>
+      </div>
+
       <div class="zone">训练配置</div>
       <div class="card">
         <a class="setting-row" href="动作库.html" data-od-id="setting-library">
@@ -233,6 +277,13 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
   var skin=(function(){ try{ return localStorage.getItem(SKEY)||'athletic'; }catch(e){ return 'athletic'; } })();
   var SKIN_NAMES={athletic:'竞训深色','heat':'热血高键','fire':'燃夜竞技场','fresh':'健康轻松','efficient':'冷静工具'};
   var THEME_COLORS={athletic:'#18191b','heat':'#f7f7f5','fire':'#121214','fresh':'#f3f8f6','efficient':'#f4f6f9'};
+  var toast=document.getElementById('toast'), toastTimer;
+  function toastMsg(msg){
+    toast.textContent=msg;
+    toast.classList.add('is-in');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toast.classList.remove('is-in'); },2400);
+  }
   function applySkin(){
     document.documentElement.setAttribute('data-skin', skin);
     var meta=document.querySelector('meta[name="theme-color"]');
@@ -251,6 +302,57 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
   applySkin();
   renderUnit();
   renderSkin();
+
+  /* ── 当前登录账户 + 退出 ── */
+  var emailEl=document.getElementById('accountEmail');
+  var nameEl=document.getElementById('accountName');
+  function loadAccount(){
+    fetch('/api/auth/session', { credentials: 'same-origin' }).then(function(r){
+      return r.json().catch(function(){ return {}; });
+    }).then(function(payload){
+      if(payload && payload.ok && payload.user){
+        emailEl.textContent = payload.user.email || '';
+        if(payload.user.displayName){ nameEl.textContent = payload.user.displayName; nameEl.style.display='block'; }
+        else nameEl.style.display='none';
+      } else {
+        emailEl.textContent = '未登录';
+      }
+    }).catch(function(){ emailEl.textContent = '未登录'; });
+  }
+  /* 退出确认：皮肤 token 化的自定义确认浮层 */
+  function confirmLogout(){
+    return new Promise(function(resolve){
+      var scrim=document.createElement('div'); scrim.className='ac-scrim';
+      var box=document.createElement('div'); box.className='ac-confirm';
+      box.innerHTML='<div class="ac-confirm__title">退出登录？</div>'+
+        '<div class="ac-confirm__sub">退出后需重新登录才能同步与写训练数据。</div>'+
+        '<div class="ac-confirm__acts">'+
+          '<button class="ac-btn ac-btn--ghost" data-role="cancel" type="button">取消</button>'+
+          '<button class="ac-btn ac-btn--danger" data-role="ok" type="button">退出登录</button>'+
+        '</div>';
+      document.querySelector('.app').appendChild(scrim);
+      document.querySelector('.app').appendChild(box);
+      requestAnimationFrame(function(){ scrim.classList.add('is-open'); box.classList.add('is-open'); });
+      var close=function(v){ scrim.classList.remove('is-open'); box.classList.remove('is-open');
+        setTimeout(function(){ scrim.remove(); box.remove(); },180); resolve(v); };
+      box.querySelector('[data-role="cancel"]').addEventListener('click', function(){ close(false); });
+      box.querySelector('[data-role="ok"]').addEventListener('click', function(){ close(true); });
+      scrim.addEventListener('click', function(){ close(false); });
+    });
+  }
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    confirmLogout().then(function(ok){
+      if(!ok) return;
+      var btn=document.getElementById('logoutBtn'); btn.disabled=true;
+      fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' })
+        .then(function(response){
+          if(!response.ok) throw new Error('logout failed');
+          window.location.assign('/login');
+        })
+        .catch(function(){ btn.disabled=false; toastMsg('退出失败，请重试'); });
+    });
+  });
+  loadAccount();
 })();
 </script>
 </body>

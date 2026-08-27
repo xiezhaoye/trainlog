@@ -7,7 +7,7 @@
     "dev": "wrangler dev --local --port 8788",
     "dev:remote": "wrangler dev --port 8788",
     "db:migrate": "wrangler d1 migrations apply trainlog-db --local",
-    "db:seed": "wrangler d1 execute trainlog-db --local --file=migrations/0002_seed.sql",
+    "db:seed": "wrangler d1 execute trainlog-db --local --file=scripts/seed-local.sql",
     "check": "tsc --noEmit",
     "deploy": "wrangler deploy"
   },

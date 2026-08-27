@@ -269,7 +269,6 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
         <button class="mood-item" type="button" data-mood="2"><span class="mood-item__emoji">🤩</span>很棒</button>
       </div>
       <label class="send-row" id="syncPlanRow" style="display:none;"><input type="checkbox" id="syncPlan" /><span>同步到计划</span></label>
-      <label class="send-row"><input type="checkbox" id="syncCal" checked /><span>同步到日历</span></label>
       <div class="modal__actions">
         <button class="btn-ghost-sm" id="sessionCancel" type="button">取消</button>
         <button class="btn-primary-sm" id="sessionConfirm" type="button">完成训练</button>
@@ -453,14 +452,12 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
   document.getElementById('sessionCancel').addEventListener('click', function(){ closeModal('sessionScrim','sessionModal'); });
   document.getElementById('sessionScrim').addEventListener('click', function(){ closeModal('sessionScrim','sessionModal'); });
   document.getElementById('sessionConfirm').addEventListener('click', function(){
-    var sendCal = document.getElementById('syncCal').checked;
     var sendPlan = document.getElementById('syncPlan').checked;
     closeModal('sessionScrim','sessionModal');
-    V2.completeSession(today, mood, sendCal, sendPlan).then(function(){
+    V2.completeSession(today, mood, sendPlan).then(function(){
       refresh(); render();
       var planMsg = sendPlan ? ' · 已同步到计划' : '';
-      if(!sendCal){ toastMsg('训练已完成 · 本次感受：'+MOOD_LABEL[mood]+planMsg); return; }
-      setTimeout(function(){ toastMsg('已发送到日历 · 训练已完成'+planMsg); }, 150);
+      toastMsg('训练已完成 · 本次感受：'+MOOD_LABEL[mood]+planMsg);
     }).catch(function(e){ toastMsg('完成训练失败：'+((e&&e.message)||'请重试'), true); });
   });
 

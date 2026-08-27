@@ -537,18 +537,18 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
       if(t.type==='cardio'){
         added.push({id:W.uid('r'), date:dateStr, type:'cardio', templateId:t.id, templateName:t.name,
           cardio:{action:t.action||t.name, speed:t.speed!=null?t.speed:null, duration:t.duration||30},
-          durationMinutes:t.duration||30, syncCalendar:false, completed:true, createdAt:Date.now()});
+          durationMinutes:t.duration||30, completed:true, createdAt:Date.now()});
       } else {
         added.push({id:W.uid('r'), date:dateStr, type:'resistance', templateId:t.id, templateName:t.name,
           resistance:{exercises:(t.exercises||[]).map(function(ex){ return {name:ex.name, part:ex.part, done:true, notes:'',
             sets:(ex.sets||[]).map(function(s){ return {weight_kg:s.weight_kg, is_bodyweight:!!s.is_bodyweight, reps:s.reps, done:true}; })}; })},
-          durationMinutes:((t.exercises||[]).length*8)||45, syncCalendar:false, completed:true, createdAt:Date.now()});
+          durationMinutes:((t.exercises||[]).length*8)||45, completed:true, createdAt:Date.now()});
       }
     });
     if(!added.length){
       added.push({id:W.uid('r'), date:dateStr, type:'resistance', templateId:null, templateName:'补记',
         resistance:{exercises:[{name:'力量训练', part:'抗阻', done:true, notes:'', sets:[]}]},
-        durationMinutes:45, syncCalendar:false, completed:true, createdAt:Date.now()});
+        durationMinutes:45, completed:true, createdAt:Date.now()});
     }
     var btn=document.getElementById('dayCard').querySelector('[data-role="bk-submit"]');
     if(btn) btn.disabled=true;
