@@ -299,6 +299,15 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
       if(skin!==v){ skin=v; try{ localStorage.setItem(SKEY,skin); }catch(e){} applySkin(); toastMsg('已切换皮肤：'+SKIN_NAMES[skin]+' · 全局生效'); }
     });
   });
+  function renderUnit(){
+    document.querySelectorAll('#unitSeg button').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-u')===unit); });
+  }
+  document.querySelectorAll('#unitSeg button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var v=b.getAttribute('data-u');
+      if(unit!==v){ unit=v; try{ localStorage.setItem(UKEY,unit); }catch(e){} renderUnit(); toastMsg('已切换单位：'+(unit==='kg'?'公斤':'磅')); }
+    });
+  });
   applySkin();
   renderUnit();
   renderSkin();
@@ -347,7 +356,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
       fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' })
         .then(function(response){
           if(!response.ok) throw new Error('logout failed');
-          window.location.assign('/login');
+          window.location.assign('/');
         })
         .catch(function(){ btn.disabled=false; toastMsg('退出失败，请重试'); });
     });
