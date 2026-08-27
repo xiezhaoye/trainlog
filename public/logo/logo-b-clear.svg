@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 256" width="640" height="256">
+  <circle cx="120" cy="128" r="76" fill="none" stroke="#a2d43f" stroke-width="22"/>
+  <path d="M92 130 L111 149 L148 107" fill="none" stroke="#121214" stroke-width="16"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="228" y="150" font-family="Avenir Next Condensed, Avenir Next, Helvetica Neue, sans-serif"
+        font-size="96" font-weight="700" letter-spacing="1" fill="#121214">trainlog</text>
+</svg>

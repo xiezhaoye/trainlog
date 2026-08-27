@@ -324,6 +324,19 @@ export default {
       try { return await api(request, env, url); }
       catch (error) { const appError = error as AppError; return json({ ok: false, error: appError.message || 'internal error' }, appError.status || 500); }
     }
+    // 设计稿保留为原始 HTML；只在 Worker 层映射无扩展名的公开路由，
+    // 不改动设计文件本身的内容或相对 Logo/manifest 引用。
+    const publicPages: Record<string, string> = {
+      '/login': '/login.html',
+      '/signup': '/signup.html',
+      '/app': '/app.html'
+    };
+    const staticPath = publicPages[url.pathname];
+    if (staticPath) {
+      const assetUrl = new URL(request.url);
+      assetUrl.pathname = staticPath;
+      return env.ASSETS.fetch(new Request(assetUrl, request));
+    }
     return env.ASSETS.fetch(request);
   }
 } satisfies ExportedHandler<Env>;
