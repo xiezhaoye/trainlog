@@ -140,7 +140,8 @@ const encoder = new TextEncoder();
 const OTP_TTL_SECONDS = 5 * 60;
 const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 const SHORT_SESSION_TTL_SECONDS = 24 * 60 * 60;
-const PASSWORD_ITERATIONS = 310_000;
+// Cloudflare Workers' PBKDF2 implementation rejects iteration counts above 100_000.
+const PASSWORD_ITERATIONS = 100_000;
 
 function emailValue(value: unknown) {
   const email = stringValue(value).toLowerCase();
