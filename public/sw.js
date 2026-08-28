@@ -11,7 +11,7 @@
 // (new pages, renamed files, etc.) - activate() deletes any cache that
 // doesn't match the current name, so bumping it is how a stale cache gets
 // cleared out on the next launch instead of lingering forever.
-var CACHE_VERSION = 'v6';
+var CACHE_VERSION = 'v7';
 var CACHE_NAME = 'trainlog-shell-' + CACHE_VERSION;
 
 self.addEventListener('install', function (event) {
