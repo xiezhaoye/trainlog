@@ -962,15 +962,24 @@ export default {
       '/app': { path: '/app.html' },
       '/app.html': { path: '/app.html' }
     };
+    // 需要登录才能访问的应用页面；未登录访问统一跳转首页。
+    const AUTH_ONLY_PAGES = new Set([
+      '/app.html', '/action-library.html', '/execute-cardio.html', '/execute-exercise.html',
+      '/execute-resistance.html', '/mcp-key.html', '/me.html', '/records.html', '/settings.html',
+      '/template-edit.html', '/templates.html', '/weekly-plan.html'
+    ]);
     const staticRoute = publicPages[url.pathname];
     if (staticRoute) {
-      if (staticRoute.path === '/app.html' && env.DEV_BYPASS_AUTH !== 'true' && !await sessionUser(request, env)) {
-        return Response.redirect(new URL('/login', url).toString(), 302);
+      if (AUTH_ONLY_PAGES.has(staticRoute.path) && env.DEV_BYPASS_AUTH !== 'true' && !await sessionUser(request, env)) {
+        return Response.redirect(new URL('/', url).toString(), 302);
       }
       if (url.pathname === '/' && env.DEV_BYPASS_AUTH !== 'true' && await sessionUser(request, env)) {
         return Response.redirect(new URL('/app', url).toString(), 302);
       }
       return staticPage(request, env, staticRoute.path, staticRoute.bridge);
+    }
+    if (AUTH_ONLY_PAGES.has(url.pathname) && env.DEV_BYPASS_AUTH !== 'true' && !await sessionUser(request, env)) {
+      return Response.redirect(new URL('/', url).toString(), 302);
     }
     return env.ASSETS.fetch(request);
   }
