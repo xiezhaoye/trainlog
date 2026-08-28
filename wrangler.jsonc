@@ -16,7 +16,12 @@
     "directory": "./public",
     "binding": "ASSETS",
     "html_handling": "none",
-    "run_worker_first": ["/", "/login", "/login.html", "/signup", "/signup.html", "/app", "/app.html"]
+    "run_worker_first": [
+      "/", "/login", "/login.html", "/signup", "/signup.html", "/app", "/app.html",
+      "/action-library.html", "/execute-cardio.html", "/execute-exercise.html",
+      "/execute-resistance.html", "/mcp-key.html", "/me.html", "/records.html",
+      "/settings.html", "/template-edit.html", "/templates.html", "/weekly-plan.html"
+    ]
   },
   "d1_databases": [
     {
