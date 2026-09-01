@@ -121,13 +121,20 @@
   // ── 删除动作 ──
   function deleteAction(dateStr, action) {
     var ds = dateStr || today();
-    // 有氧模板动作 → 删除当天 cardio 记录
-    if (action.type === 'cardio' && action.src === 'tpl' && action.tid != null) {
-      var rec = cardioRecordFor(ds, action.tid);
-      if (rec) return W.deleteRecord(rec.id);
-      return Promise.resolve();
+    // 周计划动作不会写入当天会话。删除时写入当天覆盖，否则首页下一次按周
+    // 计划合成时会重新显示它；已经生成的训练记录则一并删除。
+    if (action.src === 'tpl' && action.tid != null) {
+      if (action.type === 'cardio') {
+        var rec = cardioRecordFor(ds, action.tid);
+        var removeRecord = rec ? W.deleteRecord(rec.id) : Promise.resolve();
+        return removeRecord.then(function () {
+          return W.hidePlannedTemplateAction(ds, 'cardio', action.tid);
+        });
+      }
+      return W.removeTemplateExercise(ds, action.tid, action.ex).then(function () {
+        return W.hidePlannedTemplateAction(ds, 'resistance', action.tid, action.ex);
+      });
     }
-    if (action.src === 'tpl' && action.tid != null) return W.removeTemplateExercise(ds, action.tid, action.ex);
     var session = W.getDaySession(ds);
     if (!session) return Promise.resolve();
     var idx = action.idx;

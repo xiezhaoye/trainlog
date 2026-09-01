@@ -244,6 +244,11 @@
       type: 'resistance',
       templateName: '今日训练',
       actions: actions,
+      // 周计划动作不属于当天会话；删除它们需保存当天覆盖状态，避免首页按
+      // 周计划重新生成时又把动作显示出来。
+      hiddenTemplateActions: opts.hiddenTemplateActions !== undefined
+        ? opts.hiddenTemplateActions
+        : (existing && existing.hiddenTemplateActions) || [],
       completed: opts.completed !== undefined ? !!opts.completed : (existing ? !!existing.completed : false),
       mood: opts.mood !== undefined ? opts.mood : (existing ? existing.mood : null),
       createdAt: existing ? existing.createdAt : Date.now(),
@@ -299,6 +304,30 @@
       durationMinutes: rec.durationMinutes,
       completed: rec.completed,
       createdAt: rec.createdAt,
+    });
+  }
+  // 周计划动作的当天删除覆盖。抗阻按「模板 + 动作下标」区分；有氧模板
+  // 一条模板就是一个动作。覆盖仅影响当天，不修改周计划或训练模板。
+  function plannedActionKey(type, tid, exIdx) {
+    return type === 'cardio'
+      ? 'cardio:' + tid
+      : 'resistance:' + tid + ':' + exIdx;
+  }
+  function hiddenTemplateActionKeys(dateStr) {
+    var session = getDaySession(dateStr);
+    return (session && Array.isArray(session.hiddenTemplateActions))
+      ? session.hiddenTemplateActions
+      : [];
+  }
+  function hidePlannedTemplateAction(dateStr, type, tid, exIdx) {
+    var existing = getDaySession(dateStr);
+    var actions = existing ? JSON.parse(JSON.stringify(existing.actions || [])) : [];
+    var hidden = hiddenTemplateActionKeys(dateStr).slice();
+    var key = plannedActionKey(type, tid, exIdx);
+    if (hidden.indexOf(key) === -1) hidden.push(key);
+    return saveDaySession(dateStr, actions, {
+      completed: existing ? !!existing.completed : false,
+      hiddenTemplateActions: hidden,
     });
   }
   // ── 「同步到计划」：把本次组数据写回训练模板里的对应动作 ──
@@ -564,6 +593,8 @@
   function dayPlanRows(dateStr) {
     var rows = [];
     var session = getDaySession(dateStr);
+    var hidden = {};
+    hiddenTemplateActionKeys(dateStr).forEach(function (key) { hidden[key] = true; });
     (session && session.actions || []).forEach(function (a, idx) {
       rows.push({ src: 'session', sessionId: session.id, idx: idx, a: a });
     });
@@ -572,11 +603,12 @@
         var sessionRec = sessionRecordFor(dateStr, t.id);
         (t.exercises || []).forEach(function (ex, exIdx) {
           var recEx = sessionRec && sessionRec.resistance.exercises[exIdx];
-          // 删除该动作后（recEx.deleted）不再出现在当天安排里
-          if (recEx && recEx.deleted) return;
+          // 删除后的当天覆盖，或已有会话里的 deleted 标记，都不再展示。
+          if ((recEx && recEx.deleted) || hidden[plannedActionKey('resistance', t.id, exIdx)]) return;
           rows.push({ src: 'tpl', tid: t.id, tpl: t, exIdx: exIdx, ex: ex, recEx: recEx, sessionRec: sessionRec });
         });
       } else {
+        if (hidden[plannedActionKey('cardio', t.id)]) return;
         rows.push({ src: 'cardio-tpl', tid: t.id, tpl: t });
       }
     });
@@ -1075,7 +1107,7 @@
     // 训练模块迭代：当天动作级会话
     getDaySession: getDaySession, saveDaySession: saveDaySession, addActionsToDay: addActionsToDay,
     updateDayAction: updateDayAction, deleteDayAction: deleteDayAction, completeDaySession: completeDaySession,
-    removeTemplateExercise: removeTemplateExercise,
+    removeTemplateExercise: removeTemplateExercise, hidePlannedTemplateAction: hidePlannedTemplateAction,
     sessionCompletedFor: sessionCompletedFor,
     syncExerciseToTemplate: syncExerciseToTemplate, syncDayPlanToTemplates: syncDayPlanToTemplates,
     dayHasPlanSyncCandidates: dayHasPlanSyncCandidates,

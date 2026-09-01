@@ -110,13 +110,23 @@ function mapTemplate(row: Row | null) {
   return base;
 }
 
+function normalizeHiddenTemplateActions(input: unknown) {
+  if (!Array.isArray(input)) return [];
+  return [...new Set(input
+    .map((value) => String(value ?? '').trim())
+    .filter((value) => value.length > 0 && value.length <= 500))].slice(0, 200);
+}
+
 function mapRecord(row: Row | null) {
   if (!row) return null;
   if (Number(row.session)) {
+    const sessionMeta = safeJson<Record<string, unknown>>(row.calendar_json, {});
     return {
       id: row.id, date: row.date, session: true, templateId: null,
       mood: row.mood == null ? null : Number(row.mood), completed: Boolean(row.completed),
-      actions: safeJson(row.resistance_exercises, []), createdAt: Date.parse(String(row.created_at))
+      actions: safeJson(row.resistance_exercises, []),
+      hiddenTemplateActions: normalizeHiddenTemplateActions(sessionMeta.hiddenTemplateActions),
+      createdAt: Date.parse(String(row.created_at))
     };
   }
   const base: Record<string, unknown> = {
@@ -416,6 +426,7 @@ function recordFields(input: Record<string, unknown>, previous?: Row | null) {
   const cardio = input.cardio && typeof input.cardio === 'object' ? input.cardio as Record<string, unknown> : {};
   const resistance = input.resistance && typeof input.resistance === 'object' ? input.resistance as Record<string, unknown> : {};
   const previousExercises = safeJson(previous?.resistance_exercises, []);
+  const previousSessionMeta = safeJson<Record<string, unknown>>(previous?.calendar_json, {});
   const exercises = session
     ? (Array.isArray(input.actions) ? normalizeExercises(input.actions) : previousExercises)
     : type === 'resistance'
@@ -429,7 +440,10 @@ function recordFields(input: Record<string, unknown>, previous?: Row | null) {
     exercises: exercises == null ? null : JSON.stringify(exercises),
     duration: nullableNumber(input.durationMinutes ?? previous?.duration_minutes) ?? 60,
     completed: input.completed === undefined ? Number(previous?.completed ?? 0) : (input.completed ? 1 : 0),
-    mood: nullableNumber(input.mood ?? previous?.mood), session: session ? 1 : 0
+    mood: nullableNumber(input.mood ?? previous?.mood), session: session ? 1 : 0,
+    calendarJson: session
+      ? JSON.stringify({ hiddenTemplateActions: normalizeHiddenTemplateActions(input.hiddenTemplateActions ?? previousSessionMeta.hiddenTemplateActions) })
+      : null
   };
 }
 
@@ -755,7 +769,7 @@ const MCP_TOOL_HANDLERS: Record<string, (args: Record<string, unknown>, ctx: Mcp
   async create_record(args, { db, userId }) {
     const id = uid(); const fields = recordFields(args); const stamp = now();
     await db.prepare(`INSERT INTO records (id,user_id,date,type,template_id,template_name,cardio_action,cardio_speed,cardio_duration,resistance_exercises,duration_minutes,sync_calendar,completed,mood,session,calendar_json,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, 0, fields.completed, fields.mood, fields.session, null, stamp, stamp).run();
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, 0, fields.completed, fields.mood, fields.session, fields.calendarJson, stamp, stamp).run();
     return mapRecord(await recordById(db, userId, id));
   },
   async update_record(args, { db, userId }) {
@@ -763,8 +777,8 @@ const MCP_TOOL_HANDLERS: Record<string, (args: Record<string, unknown>, ctx: Mcp
     const previous = await recordById(db, userId, id);
     if (!previous) fail('record not found', 404);
     const fields = recordFields(args, previous);
-    await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=0,completed=?,mood=?,session=?,calendar_json=NULL,updated_at=? WHERE user_id=? AND id=?`)
-      .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.completed, fields.mood, fields.session, now(), userId, id).run();
+    await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=0,completed=?,mood=?,session=?,calendar_json=?,updated_at=? WHERE user_id=? AND id=?`)
+      .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.completed, fields.mood, fields.session, fields.calendarJson, now(), userId, id).run();
     return mapRecord(await recordById(db, userId, id));
   },
   async delete_record(args, { db, userId }) {
@@ -845,7 +859,7 @@ async function api(request: Request, env: Env, url: URL) {
   if (pathname === '/api/records' && request.method === 'POST') {
     const input = await body(request); const id = stringValue(input.id) || uid(); const fields = recordFields(input); const stamp = now();
     await db.prepare(`INSERT INTO records (id,user_id,date,type,template_id,template_name,cardio_action,cardio_speed,cardio_duration,resistance_exercises,duration_minutes,sync_calendar,completed,mood,session,calendar_json,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, 0, fields.completed, fields.mood, fields.session, null, stamp, stamp).run();
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, 0, fields.completed, fields.mood, fields.session, fields.calendarJson, stamp, stamp).run();
     return json({ ok: true, record: mapRecord(await recordById(db, userId, id)) }, 201);
   }
   const recordMatch = pathname.match(/^\/api\/records\/([^/]+)$/);
@@ -855,8 +869,8 @@ async function api(request: Request, env: Env, url: URL) {
     if (request.method === 'GET') return json({ ok: true, record: mapRecord(previous) });
     if (request.method === 'PUT' || request.method === 'PATCH') {
       const fields = recordFields(await body(request), previous);
-      await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=0,completed=?,mood=?,session=?,calendar_json=NULL,updated_at=? WHERE user_id=? AND id=?`)
-        .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.completed, fields.mood, fields.session, now(), userId, id).run();
+      await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=0,completed=?,mood=?,session=?,calendar_json=?,updated_at=? WHERE user_id=? AND id=?`)
+        .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.completed, fields.mood, fields.session, fields.calendarJson, now(), userId, id).run();
       return json({ ok: true, record: mapRecord(await recordById(db, userId, id)) });
     }
     if (request.method === 'DELETE') { await db.prepare('DELETE FROM records WHERE user_id = ? AND id = ?').bind(userId, id).run(); return json({ ok: true }); }
