@@ -330,8 +330,8 @@
       hiddenTemplateActions: hidden,
     });
   }
-  // ── 「同步到计划」：把本次组数据写回训练模板里的对应动作 ──
-  // 单个动作：执行页「添加到计划中」按钮 + 「完成本动作」浮层的同步到计划。
+  // ── 「同步到模板」：把本次组数据写回训练模板里的对应动作 ──
+  // 单个动作：执行页「添加到计划中」按钮 + 「完成本动作」浮层的同步到模板。
   // 没有可同步数据（无模板/0 组）时 resolve(null)，调用方自行处理。
   function syncExerciseToTemplate(tid, exIdx, sets, fallbackNamePart) {
     var tpl = getTemplate(tid);
@@ -348,8 +348,18 @@
     exercises.forEach(function (ex) { if (ex.part && parts.indexOf(ex.part) === -1) parts.push(ex.part); });
     return saveTemplate({ id: tpl.id, type: 'resistance', name: tpl.name, parts: parts, exercises: exercises });
   }
+  function syncCardioToTemplate(tid, action) {
+    var tpl = getTemplate(tid);
+    if (!tpl || tpl.type !== 'cardio') return Promise.resolve(null);
+    return saveTemplate({
+      id: tpl.id, type: 'cardio', name: tpl.name,
+      action: action.name || tpl.action,
+      speed: tpl.speed,
+      duration: action.duration || tpl.duration,
+    });
+  }
 
-  // 整场：「完成训练」浮层的同步到计划 —— 把当天安排里所有模板来源动作的本次
+  // 整场：「完成训练」浮层的同步到模板 —— 把当天安排里所有模板来源动作的本次
   // 数据写回对应模板（抗阻：组/重量；有氧模板：时长）。返回同步成功的动作数。
   function syncDayPlanToTemplates(dateStr) {
     var rows = dayPlanRows(dateStr);
@@ -374,7 +384,7 @@
     return Promise.all(jobs).then(function (results) { return results.filter(function (r) { return !!r; }).length; });
   }
 
-  // 当天安排里是否存在可「同步到计划」的动作（决定完成训练浮层是否显示该勾选）
+  // 当天安排里是否存在可「同步到模板」的动作（决定完成训练浮层是否显示该勾选）
   function dayHasPlanSyncCandidates(dateStr) {
     return dayPlanRows(dateStr).some(function (row) {
       if (row.src === 'tpl') {
@@ -1109,7 +1119,8 @@
     updateDayAction: updateDayAction, deleteDayAction: deleteDayAction, completeDaySession: completeDaySession,
     removeTemplateExercise: removeTemplateExercise, hidePlannedTemplateAction: hidePlannedTemplateAction,
     sessionCompletedFor: sessionCompletedFor,
-    syncExerciseToTemplate: syncExerciseToTemplate, syncDayPlanToTemplates: syncDayPlanToTemplates,
+    syncExerciseToTemplate: syncExerciseToTemplate, syncCardioToTemplate: syncCardioToTemplate,
+    syncDayPlanToTemplates: syncDayPlanToTemplates,
     dayHasPlanSyncCandidates: dayHasPlanSyncCandidates,
     clearTrainingDrafts: clearTrainingDrafts, dropOutdatedDrafts: dropOutdatedDrafts,
     getActionLibrary: getActionLibrary, saveActionLibrary: saveActionLibrary,

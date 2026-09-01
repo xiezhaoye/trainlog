@@ -260,7 +260,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     <div class="modal surface" id="finishModal" data-od-id="finish-modal">
       <div class="modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></div>
       <div class="modal__title" id="finishTitle">完成本动作？</div>
-      <label class="send-row" id="syncPlanRowIn" style="display:none;"><input type="checkbox" id="syncPlanIn" /><span>同步到计划</span></label>
+      <label class="send-row" id="syncPlanRowIn" style="display:none;"><input type="checkbox" id="syncPlanIn" /><span>同步到模板</span></label>
       <div class="modal__actions">
         <button class="btn-ghost-sm" id="finishCancel" type="button">取消</button>
         <button class="btn-primary-sm" id="finishConfirm" type="button">完成本动作</button>
@@ -687,10 +687,10 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     if(action.notes && action.notes.trim()){ notes.push({name:action.name, note:action.notes.trim(), ts:action.finish_ts}); setNotes(notes); }
     // 完成动作落库（session→当天会话 / tpl→模板会话）
     var jobs = [ V2.completeAction(today, action) ];
-    if(syncPlan){ jobs.push(W.syncExerciseToTemplate(action.tid, action.ex, action.sets, action).catch(function(){ return null; })); }
+    if(syncPlan){ jobs.push(W.syncCardioToTemplate(action.tid, action).catch(function(){ return null; })); }
     Promise.all(jobs).then(function(){
       closeModal('finishScrim','finishModal');
-      var msg = syncPlan ? '已完成 · 已同步到计划：'+action.name : '已完成：'+action.name;
+      var msg = syncPlan ? '已完成 · 已同步到模板：'+action.name : '已完成：'+action.name;
       try{ sessionStorage.setItem('v2.toast', msg); }catch(e){}
       goHome();
     }).catch(function(e){ btn.disabled=false; toastMsg('完成失败：'+((e&&e.message)||'请重试'), true); });

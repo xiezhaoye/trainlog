@@ -273,11 +273,11 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
       <div class="session-list" id="sessionList"></div>
       <div class="mood-label">本次训练感受</div>
       <div class="mood-seg" id="moodSeg" data-od-id="mood-seg">
-        <button class="mood-item" type="button" data-mood="0"><span class="mood-item__emoji">😕</span>较差</button>
+        <button class="mood-item" type="button" data-mood="0"><span class="mood-item__emoji">😕</span>难受</button>
         <button class="mood-item is-active" type="button" data-mood="1"><span class="mood-item__emoji">🙂</span>正常</button>
-        <button class="mood-item" type="button" data-mood="2"><span class="mood-item__emoji">🤩</span>很棒</button>
+        <button class="mood-item" type="button" data-mood="2"><span class="mood-item__emoji">🤩</span>棒极了！</button>
       </div>
-      <label class="send-row" id="syncPlanRow" style="display:none;"><input type="checkbox" id="syncPlan" /><span>同步到计划</span></label>
+      <label class="send-row" id="syncPlanRow" style="display:none;"><input type="checkbox" id="syncPlan" /><span>同步到模板</span></label>
       <div class="modal__actions">
         <button class="btn-ghost-sm" id="sessionCancel" type="button">取消</button>
         <button class="btn-primary-sm" id="sessionConfirm" type="button">完成训练</button>
@@ -365,7 +365,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
   var d = new Date();
   document.getElementById('dateLabel').textContent = (d.getMonth()+1) + '月' + d.getDate() + '日 · 周' + ['日','一','二','三','四','五','六'][d.getDay()];
 
-  var MOOD_LABEL = ['较差','正常','很棒'];
+  var MOOD_LABEL = ['难受','正常','棒极了！'];
   function setMeta(k,v){ m[k]=v; /* 整场完成由 V2.completeSession 落库 */ }
 
   function metaOf(a){ return a.type==='cardio'
@@ -421,7 +421,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     if(m.completed){ fin.className='btn-primary is-completed'; fin.disabled=true; fin.textContent='训练已完成 ✓'; }
     else { fin.className='btn-primary'; fin.disabled=!allDone; fin.textContent='完成训练'; }
 
-    // 训练安排右上同步到计划候选
+    // 训练安排中可同步到模板的候选动作。
     var hasPlan = actions.some(function(a){ return a.src==='tpl'; });
     document.getElementById('syncPlanRow').style.display = (hasPlan && !m.completed) ? 'flex' : 'none';
     if(!hasPlan || m.completed){ document.getElementById('syncPlan').checked = false; }
@@ -465,7 +465,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     closeModal('sessionScrim','sessionModal');
     V2.completeSession(today, mood, sendPlan).then(function(){
       refresh(); render();
-      var planMsg = sendPlan ? ' · 已同步到计划' : '';
+      var planMsg = sendPlan ? ' · 已同步到模板' : '';
       toastMsg('训练已完成 · 本次感受：'+MOOD_LABEL[mood]+planMsg);
     }).catch(function(e){ toastMsg('完成训练失败：'+((e&&e.message)||'请重试'), true); });
   });
