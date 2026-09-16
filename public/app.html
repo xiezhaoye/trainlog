@@ -532,7 +532,8 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
     Object.keys(selActs).forEach(function(k){
       if(!selActs[k]) return;
       var p=k.split('|')[0], n=k.split('|')[1];
-      toAdd.push({type:'resistance', part:p, name:n, plan_sets:3, done:false, notes:'', sets:[]});
+      var sets=W.getExerciseDefault(p,n);
+      toAdd.push({type:'resistance', part:p, name:n, plan_sets:sets.length||3, done:false, notes:'', sets:sets});
     });
     Object.keys(selCardio).forEach(function(k){
       if(!selCardio[k]) return;

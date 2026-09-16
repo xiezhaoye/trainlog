@@ -20,6 +20,7 @@
   var recordsCache = [];
   var weeklyPlanVersionsCache = []; // 按 effectiveFrom 升序排列的 {effectiveFrom, plan} 列表
   var actionLibraryCache = [];
+  var exerciseDefaultsCache = [];
   // 部位/动作数据现在由后端 action-library 管理（可在"动作库"页增删改），
   // ACTIONS_BY_PART/BODY_PARTS 保持原有的直接属性形态（不是函数）以兼容
   // template-edit.html/execute-resistance.html 里已有的 W.BODY_PARTS.map(...)
@@ -43,11 +44,13 @@
     apiGet('/api/records'),
     apiGet('/api/weekly-plan/versions'),
     apiGet('/api/action-library'),
+    apiGet('/api/exercise-defaults'),
   ]).then(function (results) {
     templatesCache = (results[0] && results[0].templates) || [];
     recordsCache = (results[1] && results[1].records) || [];
     weeklyPlanVersionsCache = (results[2] && results[2].versions) || [];
     actionLibraryCache = (results[3] && results[3].parts) || [];
+    exerciseDefaultsCache = (results[4] && results[4].defaults) || [];
     rebuildActionLibraryIndex();
   });
 
@@ -425,6 +428,39 @@
   function getRecords() { return recordsCache; }
   function getRecordsByDate(dateStr) { return recordsCache.filter(function (r) { return r.date === dateStr; }); }
   function getRecord(id) { return recordsCache.find(function (r) { return r.id === id; }); }
+  function cacheExerciseDefaults(input) {
+    (input || []).forEach(function (exercise) {
+      if (exercise.type === 'cardio' || !exercise.part || !exercise.name || !Array.isArray(exercise.sets) || !exercise.sets.length) return;
+      var item = {
+        part: exercise.part,
+        name: exercise.name,
+        sets: exercise.sets.map(function (set) {
+          return { weight_kg: set.weight_kg == null ? null : set.weight_kg, is_bodyweight: !!set.is_bodyweight, reps: set.reps == null ? null : set.reps };
+        })
+      };
+      var index = exerciseDefaultsCache.findIndex(function (candidate) { return candidate.part === item.part && candidate.name === item.name; });
+      if (index >= 0) exerciseDefaultsCache[index] = item; else exerciseDefaultsCache.push(item);
+    });
+  }
+  // Returns a clean copy of the latest reusable plan for this exact exercise.
+  // Newer saves are maintained by the server; older records are a fallback so
+  // existing users get their history immediately after upgrading.
+  function getExerciseDefault(part, name) {
+    var saved = exerciseDefaultsCache.filter(function (item) { return item.part === part && item.name === name; }).pop();
+    if (saved && Array.isArray(saved.sets) && saved.sets.length) return JSON.parse(JSON.stringify(saved.sets));
+    for (var i = recordsCache.length - 1; i >= 0; i--) {
+      var record = recordsCache[i];
+      var exercises = record.session ? (record.actions || []) : ((record.resistance && record.resistance.exercises) || []);
+      for (var j = exercises.length - 1; j >= 0; j--) {
+        var exercise = exercises[j];
+        if (exercise.type === 'cardio' || exercise.deleted || exercise.part !== part || exercise.name !== name || !Array.isArray(exercise.sets) || !exercise.sets.length) continue;
+        return exercise.sets.map(function (set) {
+          return { weight_kg: set.weight_kg == null ? null : set.weight_kg, is_bodyweight: !!set.is_bodyweight, reps: set.reps == null ? null : set.reps };
+        });
+      }
+    }
+    return [];
+  }
   function saveRecord(rec) {
     var exists = recordsCache.some(function (r) { return r.id === rec.id; });
     var method = exists ? 'PUT' : 'POST';
@@ -434,6 +470,7 @@
       var saved = res.record;
       var i = recordsCache.findIndex(function (r) { return r.id === saved.id; });
       if (i >= 0) recordsCache[i] = saved; else recordsCache.push(saved);
+      cacheExerciseDefaults(saved.session ? saved.actions : ((saved.resistance && saved.resistance.exercises) || []));
       return saved;
     });
   }
@@ -1112,6 +1149,7 @@
     setNavDate: setNavDate, getNavDate: getNavDate,
     getTemplates: getTemplates, saveTemplate: saveTemplate, deleteTemplate: deleteTemplate, getTemplate: getTemplate,
     getRecords: getRecords, getRecordsByDate: getRecordsByDate, saveRecord: saveRecord, deleteRecord: deleteRecord, getRecord: getRecord,
+    getExerciseDefault: getExerciseDefault,
     getWeeklyPlan: getWeeklyPlan, saveWeeklyPlan: saveWeeklyPlan, getPlannedTemplatesForDate: getPlannedTemplatesForDate,
     sessionRecordFor: sessionRecordFor, saveSessionExercise: saveSessionExercise,
     // 训练模块迭代：当天动作级会话

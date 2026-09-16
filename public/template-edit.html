@@ -218,6 +218,15 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
   var library=[];
   var existing=null;
   var state=null;
+  // Covers remove → re-add in the same unsaved edit, before the server has a
+  // chance to persist the removed plan.
+  var removedExerciseSets={};
+  function exerciseKey(part,name){ return part+'\u0000'+name; }
+  function copySets(sets){ return JSON.parse(JSON.stringify(sets||[])); }
+  function rememberExercise(ex){
+    if(ex && ex.part && ex.name && ex.sets && ex.sets.length) removedExerciseSets[exerciseKey(ex.part,ex.name)]=copySets(ex.sets);
+  }
+  function defaultSets(part,name){ return copySets(removedExerciseSets[exerciseKey(part,name)] || (window.Workout && Workout.getExerciseDefault(part,name)) || []); }
 
   var params=new URLSearchParams(window.location.search);
   var editId=params.get('id');
@@ -269,7 +278,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
         var n=c.getAttribute('data-part');
         var ix=state.parts.indexOf(n);
         if(ix===-1){ state.parts.push(n); }
-        else { state.parts.splice(ix,1); state.exercises=state.exercises.filter(function(e){ return e.part!==n; }); }
+        else { state.parts.splice(ix,1); state.exercises.filter(function(e){ return e.part===n; }).forEach(rememberExercise); state.exercises=state.exercises.filter(function(e){ return e.part!==n; }); }
         renderPartChips(); renderActionsSection(); renderExercises();
       });
     });
@@ -288,8 +297,8 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
       c.addEventListener('click', function(){
         var part=c.getAttribute('data-part'), name=c.getAttribute('data-name');
         var ix=state.exercises.findIndex(function(e){ return e.part===part && e.name===name; });
-        if(ix===-1){ state.exercises.push({name:name, part:part, sets:[]}); }
-        else { state.exercises.splice(ix,1); }
+        if(ix===-1){ state.exercises.push({name:name, part:part, sets:defaultSets(part,name)}); }
+        else { rememberExercise(state.exercises[ix]); state.exercises.splice(ix,1); }
         renderActionsSection(); renderExercises();
       });
     });
@@ -308,7 +317,7 @@ html[data-skin="efficient"] .ring__num,html[data-skin="efficient"] .stat-tile__n
         '</div>'+setsHtml+'</div>';
     }).join('');
     box.querySelectorAll('[data-role="del-ex"]').forEach(function(b){
-      b.addEventListener('click', function(){ state.exercises.splice(Number(b.getAttribute('data-ex')),1); renderActionsSection(); renderExercises(); });
+      b.addEventListener('click', function(){ var ix=Number(b.getAttribute('data-ex')); rememberExercise(state.exercises[ix]); state.exercises.splice(ix,1); renderActionsSection(); renderExercises(); });
     });
     box.querySelectorAll('[data-role="add-set"]').forEach(function(b){
       b.addEventListener('click', function(){

@@ -96,6 +96,49 @@ function normalizeExercises(input: unknown) {
   });
 }
 
+function exerciseKey(exercise: { part: string; name: string }) {
+  return `${exercise.part}\u0000${exercise.name}`;
+}
+
+// Keep only the reusable plan values. Completion state and notes belong to a
+// specific workout, so must never be copied into a later workout/template.
+async function saveExerciseDefaults(db: D1Database, userId: string, input: unknown) {
+  const exercises = normalizeExercises(input).filter((exercise) =>
+    exercise.type === 'resistance' && Boolean(exercise.part) && Boolean(exercise.name) && exercise.sets.length > 0
+  );
+  const stamp = now();
+  for (const exercise of exercises) {
+    const sets = exercise.sets.map((set) => ({
+      weight_kg: set.weight_kg,
+      is_bodyweight: set.is_bodyweight,
+      reps: set.reps
+    }));
+    await db.prepare(`INSERT INTO exercise_defaults (user_id,part,name,sets_json,updated_at) VALUES (?,?,?,?,?)
+      ON CONFLICT(user_id,part,name) DO UPDATE SET sets_json=excluded.sets_json,updated_at=excluded.updated_at`)
+      .bind(userId, exercise.part, exercise.name, JSON.stringify(sets), stamp).run();
+  }
+}
+
+// A template is the only place where an unperformed plan may exist. When one
+// of its exercises is removed, store that plan before overwriting the template.
+async function saveRemovedTemplateExerciseDefaults(db: D1Database, userId: string, previous: Row, nextExercisesJson: string | null) {
+  if (previous.type !== 'resistance' || !nextExercisesJson) return;
+  const previousExercises = normalizeExercises(safeJson(previous.resistance_exercises, []));
+  const nextKeys = new Set(normalizeExercises(safeJson(nextExercisesJson, [])).map(exerciseKey));
+  await saveExerciseDefaults(db, userId, previousExercises.filter((exercise) => !nextKeys.has(exerciseKey(exercise))));
+}
+
+async function listExerciseDefaults(db: D1Database, userId: string) {
+  const rows = await db.prepare(`SELECT part,name,sets_json,updated_at FROM exercise_defaults
+    WHERE user_id = ? ORDER BY updated_at ASC`).bind(userId).all<Row>();
+  return rows.results.map((row) => ({
+    part: String(row.part || ''),
+    name: String(row.name || ''),
+    sets: safeJson(row.sets_json, []),
+    updatedAt: String(row.updated_at || '')
+  }));
+}
+
 function mapTemplate(row: Row | null) {
   if (!row) return null;
   const base: Record<string, unknown> = { id: row.id, type: row.type, name: row.name };
@@ -718,6 +761,7 @@ const MCP_TOOL_HANDLERS: Record<string, (args: Record<string, unknown>, ctx: Mcp
     const previous = await templateById(db, userId, id);
     if (!previous) fail('template not found', 404);
     const fields = templateFields(args, previous);
+    await saveRemovedTemplateExerciseDefaults(db, userId, previous, fields[6]);
     await db.prepare(`UPDATE templates SET type=?,name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_parts=?,resistance_exercises=?,updated_at=?
       WHERE user_id=? AND id=?`).bind(...fields, now(), userId, id).run();
     return mapTemplate(await templateById(db, userId, id));
@@ -770,6 +814,7 @@ const MCP_TOOL_HANDLERS: Record<string, (args: Record<string, unknown>, ctx: Mcp
     const id = uid(); const fields = recordFields(args); const stamp = now();
     await db.prepare(`INSERT INTO records (id,user_id,date,type,template_id,template_name,cardio_action,cardio_speed,cardio_duration,resistance_exercises,duration_minutes,sync_calendar,completed,mood,session,calendar_json,created_at,updated_at)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, 0, fields.completed, fields.mood, fields.session, fields.calendarJson, stamp, stamp).run();
+    await saveExerciseDefaults(db, userId, safeJson(fields.exercises, []));
     return mapRecord(await recordById(db, userId, id));
   },
   async update_record(args, { db, userId }) {
@@ -779,6 +824,7 @@ const MCP_TOOL_HANDLERS: Record<string, (args: Record<string, unknown>, ctx: Mcp
     const fields = recordFields(args, previous);
     await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=0,completed=?,mood=?,session=?,calendar_json=?,updated_at=? WHERE user_id=? AND id=?`)
       .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.completed, fields.mood, fields.session, fields.calendarJson, now(), userId, id).run();
+    await saveExerciseDefaults(db, userId, safeJson(fields.exercises, []));
     return mapRecord(await recordById(db, userId, id));
   },
   async delete_record(args, { db, userId }) {
@@ -835,6 +881,7 @@ async function api(request: Request, env: Env, url: URL) {
   const pathname = url.pathname;
 
   if (pathname === '/api/templates' && request.method === 'GET') return json({ ok: true, templates: await listTemplates(db, userId) });
+  if (pathname === '/api/exercise-defaults' && request.method === 'GET') return json({ ok: true, defaults: await listExerciseDefaults(db, userId) });
   if (pathname === '/api/templates' && request.method === 'POST') {
     const input = await body(request); const id = stringValue(input.id) || uid(); const fields = templateFields(input); const stamp = now();
     await db.prepare(`INSERT INTO templates (id,user_id,type,name,cardio_action,cardio_speed,cardio_duration,resistance_parts,resistance_exercises,created_at,updated_at)
@@ -848,6 +895,7 @@ async function api(request: Request, env: Env, url: URL) {
     if (request.method === 'GET') return json({ ok: true, template: mapTemplate(previous) });
     if (request.method === 'PUT') {
       const fields = templateFields(await body(request), previous);
+      await saveRemovedTemplateExerciseDefaults(db, userId, previous, fields[6]);
       await db.prepare(`UPDATE templates SET type=?,name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_parts=?,resistance_exercises=?,updated_at=?
         WHERE user_id=? AND id=?`).bind(...fields, now(), userId, id).run();
       return json({ ok: true, template: mapTemplate(await templateById(db, userId, id)) });
@@ -860,6 +908,7 @@ async function api(request: Request, env: Env, url: URL) {
     const input = await body(request); const id = stringValue(input.id) || uid(); const fields = recordFields(input); const stamp = now();
     await db.prepare(`INSERT INTO records (id,user_id,date,type,template_id,template_name,cardio_action,cardio_speed,cardio_duration,resistance_exercises,duration_minutes,sync_calendar,completed,mood,session,calendar_json,created_at,updated_at)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(id, userId, fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, 0, fields.completed, fields.mood, fields.session, fields.calendarJson, stamp, stamp).run();
+    await saveExerciseDefaults(db, userId, safeJson(fields.exercises, []));
     return json({ ok: true, record: mapRecord(await recordById(db, userId, id)) }, 201);
   }
   const recordMatch = pathname.match(/^\/api\/records\/([^/]+)$/);
@@ -871,6 +920,7 @@ async function api(request: Request, env: Env, url: URL) {
       const fields = recordFields(await body(request), previous);
       await db.prepare(`UPDATE records SET date=?,type=?,template_id=?,template_name=?,cardio_action=?,cardio_speed=?,cardio_duration=?,resistance_exercises=?,duration_minutes=?,sync_calendar=0,completed=?,mood=?,session=?,calendar_json=?,updated_at=? WHERE user_id=? AND id=?`)
         .bind(fields.date, fields.type, fields.templateId, fields.templateName, fields.cardioAction, fields.cardioSpeed, fields.cardioDuration, fields.exercises, fields.duration, fields.completed, fields.mood, fields.session, fields.calendarJson, now(), userId, id).run();
+      await saveExerciseDefaults(db, userId, safeJson(fields.exercises, []));
       return json({ ok: true, record: mapRecord(await recordById(db, userId, id)) });
     }
     if (request.method === 'DELETE') { await db.prepare('DELETE FROM records WHERE user_id = ? AND id = ?').bind(userId, id).run(); return json({ ok: true }); }
